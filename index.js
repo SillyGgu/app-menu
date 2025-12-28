@@ -19,9 +19,10 @@ import {
             hiddenApps: [],
             pos: { top: 80, left: 20 },
             scale: 100,
-            labelBold: true,    // 텍스트 볼드 기본값 ON
-            bgBlur: 1,          // 희뿌연 정도 기본값
-            bgBrightness: 1.1   // 밝기 기본값
+            labelBold: true,
+            bgBlur: 1,
+            bgBrightness: 1.1,
+            autoClose: true // 자동 닫기 기본값 ON
         };
     }
     const settings = extension_settings[extensionName];
@@ -46,9 +47,13 @@ import {
                     </div>
                     
                     <div class="setting-group">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span class="setting-title" style="margin-bottom:0;">앱 이름 볼드체</span>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <span class="setting-title" style="margin:0;">앱 이름 볼드체</span>
                             <input type="checkbox" id="bold-toggle" ${settings.labelBold ? 'checked' : ''}>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span class="setting-title" style="margin:0;">외부 클릭 시 자동 닫기</span>
+                            <input type="checkbox" id="autoclose-toggle" ${settings.autoClose ? 'checked' : ''}>
                         </div>
                     </div>
 
@@ -84,7 +89,6 @@ import {
 
         bindDragFunctionality($iphoneContainer);
 
-        // 설정 토글 이벤트
         $('.iphone-settings-toggle').on('click', function(e) {
             e.stopPropagation();
             const isSettingsVisible = $('#iphone-settings-view').is(':visible');
@@ -103,13 +107,17 @@ import {
             }
         });
 
-        // 텍스트 볼드 토글
         $('#bold-toggle').on('change', function() {
             settings.labelBold = $(this).is(':checked');
             saveSettingsDebounced();
         });
 
-        // 크기 슬라이더
+        // 자동 닫기 토글 이벤트 추가
+        $('#autoclose-toggle').on('change', function() {
+            settings.autoClose = $(this).is(':checked');
+            saveSettingsDebounced();
+        });
+
         $('#menu-scale-slider').on('input', function() {
             const val = $(this).val();
             settings.scale = val;
@@ -118,7 +126,6 @@ import {
             saveSettingsDebounced();
         });
 
-        // 블러 슬라이더
         $('#bg-blur-slider').on('input', function() {
             const val = $(this).val();
             settings.bgBlur = val;
@@ -127,7 +134,6 @@ import {
             saveSettingsDebounced();
         });
 
-        // 밝기 슬라이더
         $('#bg-bright-slider').on('input', function() {
             const val = $(this).val();
             settings.bgBrightness = val;
@@ -142,7 +148,10 @@ import {
             saveSettingsDebounced();
         });
 
+        // 외부 클릭 시 닫기 로직 수정
         $(document).on('mousedown', (e) => {
+            if (!settings.autoClose) return; // 자동 닫기가 꺼져있으면 무시
+
             if (!$iphoneContainer.is(e.target) && $iphoneContainer.has(e.target).length === 0 && !$(e.target).closest('#extensionsMenuButton').length) {
                 $iphoneContainer.fadeOut(200);
                 $globalTooltip.hide();
@@ -305,7 +314,7 @@ import {
         
         const allItems = getAllMenuItems();
         const visibleItems = allItems.filter(item => !settings.hiddenApps.includes(item.id));
-        const boldClass = settings.labelBold ? 'is-bold' : ''; // 볼드 설정 확인
+        const boldClass = settings.labelBold ? 'is-bold' : '';
 
         for (let i = 0; i < visibleItems.length; i += 3) {
             const $shelf = $('<div class="iphone-shelf"></div>');
@@ -324,8 +333,12 @@ import {
                 $app.on('click', (e) => {
                     e.stopPropagation();
                     item.originalElement.click();
-                    $iphoneContainer.fadeOut(200);
-                    $globalTooltip.hide();
+                    
+                    // 자동 닫기 설정이 켜져 있을 때만 메뉴를 닫음
+                    if (settings.autoClose) {
+                        $iphoneContainer.fadeOut(200);
+                        $globalTooltip.hide();
+                    }
                 });
 
                 $app.on('mouseenter', function() {
