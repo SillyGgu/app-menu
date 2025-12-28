@@ -18,7 +18,10 @@ import {
             bgImage: '',
             hiddenApps: [],
             pos: { top: 80, left: 20 },
-            scale: 100 // 기본 크기 100% 추가
+            scale: 100,
+            labelBold: true,    // 텍스트 볼드 기본값 ON
+            bgBlur: 1,          // 희뿌연 정도 기본값
+            bgBrightness: 1.1   // 밝기 기본값
         };
     }
     const settings = extension_settings[extensionName];
@@ -41,10 +44,29 @@ import {
                         <span class="setting-title">배경 이미지 URL</span>
                         <input type="text" id="bg-url-input" placeholder="URL 입력" value="${settings.bgImage}">
                     </div>
+                    
                     <div class="setting-group">
-                        <span class="setting-title">메뉴 크기 (Scale): <span id="scale-value">${settings.scale || 100}%</span></span>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span class="setting-title" style="margin-bottom:0;">앱 이름 볼드체</span>
+                            <input type="checkbox" id="bold-toggle" ${settings.labelBold ? 'checked' : ''}>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <span class="setting-title">메뉴 크기: <span id="scale-value">${settings.scale || 100}%</span></span>
                         <input type="range" id="menu-scale-slider" min="50" max="150" value="${settings.scale || 100}" style="width: 100%;">
                     </div>
+
+                    <div class="setting-group">
+                        <span class="setting-title">배경 희뿌연 정도 (Blur): <span id="blur-value">${settings.bgBlur}px</span></span>
+                        <input type="range" id="bg-blur-slider" min="0" max="20" step="1" value="${settings.bgBlur}" style="width: 100%;">
+                    </div>
+
+                    <div class="setting-group">
+                        <span class="setting-title">배경 밝기 (Brightness): <span id="bright-value">${Math.round(settings.bgBrightness * 100)}%</span></span>
+                        <input type="range" id="bg-bright-slider" min="0.5" max="2.0" step="0.1" value="${settings.bgBrightness}" style="width: 100%;">
+                    </div>
+
                     <div class="setting-group">
                         <span class="setting-title">앱 숨기기 설정</span>
                         <div id="app-visibility-list"></div>
@@ -58,10 +80,11 @@ import {
         $globalTooltip = $('#iphone-global-tooltip');
 
         applyBackground();
-        applyCurrentPosition(); // 초기 위치 및 크기 적용
+        applyCurrentPosition();
 
         bindDragFunctionality($iphoneContainer);
 
+        // 설정 토글 이벤트
         $('.iphone-settings-toggle').on('click', function(e) {
             e.stopPropagation();
             const isSettingsVisible = $('#iphone-settings-view').is(':visible');
@@ -80,12 +103,36 @@ import {
             }
         });
 
-        // 크기 조절 슬라이더 이벤트
+        // 텍스트 볼드 토글
+        $('#bold-toggle').on('change', function() {
+            settings.labelBold = $(this).is(':checked');
+            saveSettingsDebounced();
+        });
+
+        // 크기 슬라이더
         $('#menu-scale-slider').on('input', function() {
             const val = $(this).val();
             settings.scale = val;
             $('#scale-value').text(val + '%');
             applyCurrentPosition();
+            saveSettingsDebounced();
+        });
+
+        // 블러 슬라이더
+        $('#bg-blur-slider').on('input', function() {
+            const val = $(this).val();
+            settings.bgBlur = val;
+            $('#blur-value').text(val + 'px');
+            applyBackground();
+            saveSettingsDebounced();
+        });
+
+        // 밝기 슬라이더
+        $('#bg-bright-slider').on('input', function() {
+            const val = $(this).val();
+            settings.bgBrightness = val;
+            $('#bright-value').text(Math.round(val * 100) + '%');
+            applyBackground();
             saveSettingsDebounced();
         });
 
@@ -102,13 +149,21 @@ import {
             }
         });
     }
-
     function applyBackground() {
         const $bgLayer = $('.iphone-bg-blur-layer');
+        const blurVal = settings.bgBlur ?? 1;
+        const brightVal = settings.bgBrightness ?? 1.1;
+
         if (settings.bgImage) {
-            $bgLayer.css('background-image', `url('${settings.bgImage}')`);
+            $bgLayer.css({
+                'background-image': `url('${settings.bgImage}')`,
+                'filter': `blur(${blurVal}px) brightness(${brightVal})`
+            });
         } else {
-            $bgLayer.css('background-image', 'none');
+            $bgLayer.css({
+                'background-image': 'none',
+                'filter': 'none'
+            });
         }
     }
 	
@@ -250,6 +305,7 @@ import {
         
         const allItems = getAllMenuItems();
         const visibleItems = allItems.filter(item => !settings.hiddenApps.includes(item.id));
+        const boldClass = settings.labelBold ? 'is-bold' : ''; // 볼드 설정 확인
 
         for (let i = 0; i < visibleItems.length; i += 3) {
             const $shelf = $('<div class="iphone-shelf"></div>');
@@ -261,7 +317,7 @@ import {
                         <div class="iphone-app-icon">
                             <i class="${item.iconClass}"></i>
                         </div>
-                        <div class="iphone-app-label">${item.label}</div>
+                        <div class="iphone-app-label ${boldClass}">${item.label}</div>
                     </div>
                 `);
 

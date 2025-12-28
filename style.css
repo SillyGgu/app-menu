@@ -16,8 +16,8 @@
     box-sizing: border-box;
     overflow: hidden;
     touch-action: none; 
+    transform-origin: top left; /* 크기 조절 시 기준점을 왼쪽 상단으로 고정 */
 }
-
 #iphone-menu-container.grabbing {
     cursor: grabbing;
     user-select: none;
@@ -163,8 +163,26 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    text-shadow: 0px 0px 2px rgba(255,255,255,0.8);
+    transition: font-weight 0.2s;
 }
 
+.iphone-app-label.is-bold {
+    font-weight: bold !important;
+}
+
+/* 배경 블러 레이어 기본값 수정 (JS에서 동적으로 제어함) */
+.iphone-bg-blur-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background-position: center;
+    z-index: -1; 
+    transform: scale(1.1); /* 테두리 빈틈 방지 */
+}
 
 #iphone-global-tooltip {
     position: fixed;
@@ -218,15 +236,3 @@
     display: none !important;
 }
 
-.iphone-bg-blur-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-size: cover;
-    background-position: center;
-    filter: blur(1px) brightness(1.1); 
-    transform: scale(1.1); 
-    z-index: -1; 
-}
