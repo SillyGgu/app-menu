@@ -1,0 +1,11 @@
+{
+    "display_name": "iPhone 스타일 요술봉 메뉴",
+    "loading_order": 10,
+    "requires": [],
+    "optional": [],
+    "js": "index.js",
+    "css": "style.css",
+    "author": "YourName",
+    "version": "1.0.0",
+    "description": "요술봉 메뉴를 iPhone 홈 화면 테마로 변경합니다."
+}
