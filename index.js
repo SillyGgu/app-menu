@@ -17,7 +17,7 @@ import {
         extension_settings[extensionName] = {
             bgImage: '',
             hiddenApps: [],
-            pos: { top: 80, left: 20 } // 초기 위치 기본값
+            pos: { top: 80, left: 20 } 
         };
     }
     const settings = extension_settings[extensionName];
@@ -53,7 +53,7 @@ import {
 
         applyBackground();
 
-        // 드래그 기능 연결
+        
         bindDragFunctionality($iphoneContainer);
 
         $('.iphone-settings-toggle').on('click', function(e) {
@@ -104,10 +104,10 @@ import {
         const container = $element[0];
 
         function onDragStart(e) {
-            // 모바일이면 드래그 무시
+            
             if (window.innerWidth <= 768) return;
             
-            // 헤더 영역에서만 드래그 가능하게 설정 (아이콘 클릭과 충돌 방지)
+            
             if (!$(e.target).closest('#iphone-menu-header').length) return;
 
             isDragging = true;
@@ -152,28 +152,28 @@ import {
         if (!$iphoneContainer) return;
 
         if (window.innerWidth <= 768) {
-            // 모바일: 채팅창(#chat)의 가로 중앙에 위치시키고 본연의 너비 유지
+            
             const $chat = $('#chat');
             if ($chat.length > 0) {
                 const rect = $chat[0].getBoundingClientRect();
-                const mobileTopOffset = 70; // 상단바를 피하기 위한 간격
+                const mobileTopOffset = 70; 
                 
-                // 가로 중앙 계산: 채팅창 왼쪽 시작점 + (채팅창 너비 / 2)
+                
                 const centerX = rect.left + (rect.width / 2);
 
                 $iphoneContainer.css({
                     'top': (rect.top + mobileTopOffset) + 'px',
-                    'height': '500px', // 본연의 높이 유지
+                    'height': '500px', 
                     'left': centerX + 'px',
-                    'transform': 'translateX(-50%)', // 계산된 중앙점에서 왼쪽으로 절반 이동하여 완벽한 중앙 정렬
-                    'width': '280px', // 본연의 너비 유지
+                    'transform': 'translateX(-50%)', 
+                    'width': '280px', 
                     'bottom': 'auto',
                     'position': 'fixed',
                     'border-radius': '40px'
                 });
             }
         } else {
-            // PC: 저장된 위치 적용
+            
             $iphoneContainer.css({
                 'top': settings.pos.top + 'px',
                 'left': settings.pos.left + 'px',
@@ -191,14 +191,14 @@ import {
         $('#extensionsMenu .list-group-item').each(function() {
             const $item = $(this);
             
-            // 1. 아이콘 추출 (자식 요소 전체에서 i 태그나 아이콘 클래스 검색)
+            
             let iconClass = $item.find('i').first().attr('class') || 
                             $item.find('[class*="fa-"]').first().attr('class') ||
                             $item.find('.extensionsMenuExtensionButton').first().attr('class') ||
                             'fa-solid fa-cube';
 
-            // 2. 텍스트(라벨) 추출 (우선순위 세분화)
-            // 우선순위: .list-group-item-label -> span -> 직접 텍스트 노드 -> title 속성
+            
+            
             let label = '';
             
             if ($item.find('.list-group-item-label').length) {
@@ -211,7 +211,7 @@ import {
             
             if (!label) {
                 label = $item.contents().filter(function() {
-                    return this.nodeType === 3; // 순수 텍스트 노드
+                    return this.nodeType === 3; 
                 }).text().trim();
             }
             
@@ -313,12 +313,12 @@ import {
             } else {
                 $('#extensionsMenu').addClass('iphone-mode-active');
                 refreshAppGrid();
-                applyCurrentPosition(); // 열 때 위치 적용
+                applyCurrentPosition(); 
                 $iphoneContainer.fadeIn(200);
             }
         });
 
-        // 화면 크기 변경 시 위치 재조정 (모바일 대응)
+        
         $(window).on('resize', () => {
             if ($iphoneContainer.is(':visible')) {
                 applyCurrentPosition();

@@ -4,8 +4,8 @@
     left: 20px;
     width: 280px;
     height: 500px;
-    background: rgba(255, 255, 255, 0.4); /* 기본 바탕은 투명하게 */
-    backdrop-filter: blur(25px); /* 뒤에 깔린 UI 블러 */
+    background: rgba(255, 255, 255, 0.4); 
+    backdrop-filter: blur(25px); 
     border-radius: 40px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 20px 50px rgba(0,0,0,0.3);
@@ -15,7 +15,7 @@
     padding: 0;
     box-sizing: border-box;
     overflow: hidden;
-    touch-action: none; /* 드래그 충돌 방지 */
+    touch-action: none; 
 }
 
 #iphone-menu-container.grabbing {
@@ -23,7 +23,7 @@
     user-select: none;
 }
 
-/* 상단 헤더: 가로 정렬 강제 및 배경 복구 */
+
 #iphone-menu-header {
     display: flex !important;
     flex-direction: row !important;
@@ -40,7 +40,7 @@
     width: 100% !important;
 }
 
-/* 헤더 내부 요소들이 세로로 튀지 않게 고정 */
+
 #iphone-menu-header span, 
 #iphone-menu-header div {
     display: flex !important;
@@ -52,17 +52,17 @@
     cursor: pointer;
     width: 30px;
     height: 30px;
-    background: #8e8e93; /* iOS 시스템 그레이 */
+    background: #8e8e93; 
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 8px; /* 너무 동그랗지 않은 부드러운 사각형 */
+    border-radius: 8px; 
     transition: background 0.2s, transform 0.1s;
     box-shadow: inset 0 0 2px rgba(0,0,0,0.1);
 }
 
 .iphone-settings-toggle:hover {
-    background: #636366; /* 호버 시 약간 더 진하게 */
+    background: #636366; 
 }
 
 .iphone-settings-toggle:active {
@@ -70,15 +70,15 @@
 }
 
 .iphone-settings-toggle i {
-    color: #ffffff !important; /* 톱니바퀴는 무조건 흰색 고정 */
+    color: #ffffff !important; 
     font-size: 16px !important;
     margin: 0 !important;
     padding: 0 !important;
 }
 
-/* 스크롤 뷰 영역 (헤더 축소에 맞춰 높이 조정) */
+
 .iphone-view {
-    height: 445px; /* 500px - 55px */
+    height: 445px; 
     overflow-y: auto !important;
     display: block;
     padding: 15px 10px 30px 10px;
@@ -86,20 +86,20 @@
     position: relative;
 }
 
-/* 스크롤바: 얇고 거의 안 보이게 수정 */
+
 .iphone-view::-webkit-scrollbar {
-    width: 4px !important; /* 매우 얇게 */
+    width: 4px !important; 
     display: block !important;
 }
 .iphone-view::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.1) !important; /* 아주 연한 회색 */
+    background: rgba(0, 0, 0, 0.1) !important; 
     border-radius: 10px;
 }
 .iphone-view::-webkit-scrollbar-track {
     background: transparent !important;
 }
 
-/* 선반(Shelf) 레이아웃 */
+
 .iphone-shelf {
     display: flex;
     justify-content: flex-start;
@@ -109,7 +109,7 @@
     flex-shrink: 0;
 }
 
-/* 개별 앱 아이콘 */
+
 .iphone-app-item {
     width: 33.33%;
     display: flex;
@@ -132,10 +132,10 @@
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     border: 1px solid rgba(0,0,0,0.05);
     transition: all 0.2s ease;
-    overflow: hidden; /* 아이콘이 삐져나가지 않게 */
+    overflow: hidden; 
 }
 
-/* 중요: 기존 메뉴의 스타일이 아이콘 위치를 망치지 않도록 강제 초기화 */
+
 .iphone-app-icon i, 
 .iphone-app-icon div {
     margin: 0 !important;
@@ -165,7 +165,7 @@
     text-overflow: ellipsis;
 }
 
-/* 창 위 전역 툴팁 */
+
 #iphone-global-tooltip {
     position: fixed;
     background: rgba(0, 0, 0, 0.85);
@@ -181,7 +181,7 @@
     transform: translateX(-50%);
 }
 
-/* 설정창 내부 */
+
 .setting-group {
     margin-bottom: 15px;
     padding: 15px;
@@ -226,7 +226,7 @@
     bottom: 0;
     background-size: cover;
     background-position: center;
-    filter: blur(1px) brightness(1.1); /* 이미지 자체에 블러와 약간의 어두움 적용 */
-    transform: scale(1.1); /* 블러시 외곽선 깨짐 방지를 위해 살짝 확대 */
-    z-index: -1; /* 아이콘보다 뒤로 보냄 */
+    filter: blur(1px) brightness(1.1); 
+    transform: scale(1.1); 
+    z-index: -1; 
 }
