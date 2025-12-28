@@ -20,9 +20,11 @@ import {
             pos: { top: 80, left: 20 },
             scale: 100,
             labelBold: true,
-            bgBlur: 1,
-            bgBrightness: 1.1,
-            autoClose: true // 자동 닫기 기본값 ON
+            bgBlur: 5,           // 희뿌연 정도
+            bgOpacity: 0.4,      // 흰색 덮개 불투명도 (신규)
+            iconOpacity: 1.0,    // 아이콘 투명도 (신규)
+            fontSize: 10,        // 글자 크기 (신규)
+            autoClose: true
         };
     }
     const settings = extension_settings[extensionName];
@@ -32,7 +34,8 @@ import {
 
         const html = `
             <div id="iphone-menu-container">
-                <div class="iphone-bg-blur-layer"></div> 
+                <div class="iphone-bg-blur-layer"></div>
+                <div class="iphone-bg-overlay"></div> 
                 <div id="iphone-menu-header">
                     <span id="iphone-title">Extensions</span>
                     <div class="iphone-settings-toggle">
@@ -58,18 +61,28 @@ import {
                     </div>
 
                     <div class="setting-group">
-                        <span class="setting-title">메뉴 크기: <span id="scale-value">${settings.scale || 100}%</span></span>
-                        <input type="range" id="menu-scale-slider" min="50" max="150" value="${settings.scale || 100}" style="width: 100%;">
+                        <span class="setting-title">메뉴 전체 크기: <span id="scale-value">${settings.scale}%</span></span>
+                        <input type="range" id="menu-scale-slider" min="50" max="150" value="${settings.scale}" style="width: 100%;">
                     </div>
 
                     <div class="setting-group">
                         <span class="setting-title">배경 희뿌연 정도 (Blur): <span id="blur-value">${settings.bgBlur}px</span></span>
-                        <input type="range" id="bg-blur-slider" min="0" max="20" step="1" value="${settings.bgBlur}" style="width: 100%;">
+                        <input type="range" id="bg-blur-slider" min="0" max="30" step="1" value="${settings.bgBlur}" style="width: 100%;">
                     </div>
 
                     <div class="setting-group">
-                        <span class="setting-title">배경 밝기 (Brightness): <span id="bright-value">${Math.round(settings.bgBrightness * 100)}%</span></span>
-                        <input type="range" id="bg-bright-slider" min="0.5" max="2.0" step="0.1" value="${settings.bgBrightness}" style="width: 100%;">
+                        <span class="setting-title">흰색 배경 불투명도: <span id="opacity-value">${Math.round(settings.bgOpacity * 100)}%</span></span>
+                        <input type="range" id="bg-opacity-slider" min="0" max="1" step="0.05" value="${settings.bgOpacity}" style="width: 100%;">
+                    </div>
+
+                    <div class="setting-group">
+                        <span class="setting-title">아이콘 투명도: <span id="icon-opacity-value">${Math.round(settings.iconOpacity * 100)}%</span></span>
+                        <input type="range" id="icon-opacity-slider" min="0.1" max="1" step="0.05" value="${settings.iconOpacity}" style="width: 100%;">
+                    </div>
+
+                    <div class="setting-group">
+                        <span class="setting-title">텍스트 크기: <span id="font-size-value">${settings.fontSize}px</span></span>
+                        <input type="range" id="font-size-slider" min="8" max="20" step="1" value="${settings.fontSize}" style="width: 100%;">
                     </div>
 
                     <div class="setting-group">
@@ -89,10 +102,10 @@ import {
 
         bindDragFunctionality($iphoneContainer);
 
+        // 설정 토글
         $('.iphone-settings-toggle').on('click', function(e) {
             e.stopPropagation();
-            const isSettingsVisible = $('#iphone-settings-view').is(':visible');
-            if (isSettingsVisible) {
+            if ($('#iphone-settings-view').is(':visible')) {
                 $('#iphone-settings-view').hide();
                 $('#iphone-menu-grid-view').show();
                 $('#iphone-title').text('Extensions');
@@ -107,38 +120,42 @@ import {
             }
         });
 
-        $('#bold-toggle').on('change', function() {
-            settings.labelBold = $(this).is(':checked');
-            saveSettingsDebounced();
-        });
-
-        // 자동 닫기 토글 이벤트 추가
-        $('#autoclose-toggle').on('change', function() {
-            settings.autoClose = $(this).is(':checked');
-            saveSettingsDebounced();
-        });
+        // 이벤트 바인딩
+        $('#bold-toggle').on('change', function() { settings.labelBold = $(this).is(':checked'); saveSettingsDebounced(); });
+        $('#autoclose-toggle').on('change', function() { settings.autoClose = $(this).is(':checked'); saveSettingsDebounced(); });
 
         $('#menu-scale-slider').on('input', function() {
-            const val = $(this).val();
-            settings.scale = val;
-            $('#scale-value').text(val + '%');
+            settings.scale = $(this).val();
+            $('#scale-value').text(settings.scale + '%');
             applyCurrentPosition();
             saveSettingsDebounced();
         });
 
         $('#bg-blur-slider').on('input', function() {
-            const val = $(this).val();
-            settings.bgBlur = val;
-            $('#blur-value').text(val + 'px');
+            settings.bgBlur = $(this).val();
+            $('#blur-value').text(settings.bgBlur + 'px');
             applyBackground();
             saveSettingsDebounced();
         });
 
-        $('#bg-bright-slider').on('input', function() {
-            const val = $(this).val();
-            settings.bgBrightness = val;
-            $('#bright-value').text(Math.round(val * 100) + '%');
+        $('#bg-opacity-slider').on('input', function() {
+            settings.bgOpacity = $(this).val();
+            $('#opacity-value').text(Math.round(settings.bgOpacity * 100) + '%');
             applyBackground();
+            saveSettingsDebounced();
+        });
+
+        $('#icon-opacity-slider').on('input', function() {
+            settings.iconOpacity = $(this).val();
+            $('#icon-opacity-value').text(Math.round(settings.iconOpacity * 100) + '%');
+            refreshAppGrid(); // 아이콘에 즉시 반영
+            saveSettingsDebounced();
+        });
+
+        $('#font-size-slider').on('input', function() {
+            settings.fontSize = $(this).val();
+            $('#font-size-value').text(settings.fontSize + 'px');
+            refreshAppGrid(); // 텍스트 크기 즉시 반영
             saveSettingsDebounced();
         });
 
@@ -148,10 +165,8 @@ import {
             saveSettingsDebounced();
         });
 
-        // 외부 클릭 시 닫기 로직 수정
         $(document).on('mousedown', (e) => {
-            if (!settings.autoClose) return; // 자동 닫기가 꺼져있으면 무시
-
+            if (!settings.autoClose) return;
             if (!$iphoneContainer.is(e.target) && $iphoneContainer.has(e.target).length === 0 && !$(e.target).closest('#extensionsMenuButton').length) {
                 $iphoneContainer.fadeOut(200);
                 $globalTooltip.hide();
@@ -160,19 +175,20 @@ import {
     }
     function applyBackground() {
         const $bgLayer = $('.iphone-bg-blur-layer');
-        const blurVal = settings.bgBlur ?? 1;
-        const brightVal = settings.bgBrightness ?? 1.1;
+        const $overlay = $('.iphone-bg-overlay');
+        const blurVal = settings.bgBlur ?? 5;
+        const opacityVal = settings.bgOpacity ?? 0.4;
 
         if (settings.bgImage) {
             $bgLayer.css({
                 'background-image': `url('${settings.bgImage}')`,
-                'filter': `blur(${blurVal}px) brightness(${brightVal})`
+                'filter': `blur(${blurVal}px)`
             });
+            // 흰색 덮개의 투명도 조절
+            $overlay.css('opacity', opacityVal);
         } else {
-            $bgLayer.css({
-                'background-image': 'none',
-                'filter': 'none'
-            });
+            $bgLayer.css({'background-image': 'none', 'filter': 'none'});
+            $overlay.css('opacity', 0);
         }
     }
 	
@@ -315,6 +331,8 @@ import {
         const allItems = getAllMenuItems();
         const visibleItems = allItems.filter(item => !settings.hiddenApps.includes(item.id));
         const boldClass = settings.labelBold ? 'is-bold' : '';
+        const iconOpacity = settings.iconOpacity ?? 1.0;
+        const fontSize = settings.fontSize ?? 10;
 
         for (let i = 0; i < visibleItems.length; i += 3) {
             const $shelf = $('<div class="iphone-shelf"></div>');
@@ -323,18 +341,16 @@ import {
             rowItems.forEach(item => {
                 const $app = $(`
                     <div class="iphone-app-item">
-                        <div class="iphone-app-icon">
+                        <div class="iphone-app-icon" style="opacity: ${iconOpacity};">
                             <i class="${item.iconClass}"></i>
                         </div>
-                        <div class="iphone-app-label ${boldClass}">${item.label}</div>
+                        <div class="iphone-app-label ${boldClass}" style="font-size: ${fontSize}px;">${item.label}</div>
                     </div>
                 `);
 
                 $app.on('click', (e) => {
                     e.stopPropagation();
                     item.originalElement.click();
-                    
-                    // 자동 닫기 설정이 켜져 있을 때만 메뉴를 닫음
                     if (settings.autoClose) {
                         $iphoneContainer.fadeOut(200);
                         $globalTooltip.hide();
@@ -357,7 +373,6 @@ import {
             $view.append($shelf);
         }
     }
-
     function renderVisibilitySettings() {
         const $list = $('#app-visibility-list');
         $list.empty();
