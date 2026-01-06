@@ -158,7 +158,7 @@ let customIconData = iconStorage.load();
                         <input type="text" id="bg-url-input" placeholder="URL 입력" value="${settings.bgImage}">
                     </div>
                     <div class="setting-group">
-                        <span class="setting-title">전체 스프라이트 이미지 (CSS Sprite)</span>
+                        <span class="setting-title">전체 어플 덮어씌우기</span>
                         <input type="text" id="sprite-url-input" placeholder="스프라이트 이미지 URL" value="${customIconData.sprite.url}">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
                             <span style="font-size:11px;">스프라이트 모드 활성화</span>
@@ -167,7 +167,7 @@ let customIconData = iconStorage.load();
                     </div>
 
                     <div class="setting-group">
-                        <span class="setting-title">Sprite 좌우 위치 조절: <span id="sprite-x-value">${settings.spriteXOffset}px</span></span>
+                        <span class="setting-title">스프라이트 좌우 위치 조절: <span id="sprite-x-value">${settings.spriteXOffset}px</span></span>
                         <input type="range" id="sprite-x-slider" min="-100" max="100" step="1" value="${settings.spriteXOffset}" style="width: 100%;">
                         <div style="display:flex; justify-content:space-between; font-size:10px; color:#888; margin-top:5px;">
                             <span>Left</span>
@@ -192,7 +192,7 @@ let customIconData = iconStorage.load();
                     </div>
 
                     <div class="setting-group">
-                        <span class="setting-title">배경 희뿌연 정도 (Blur): <span id="blur-value">${settings.bgBlur}px</span></span>
+                        <span class="setting-title">배경 희뿌연 정도: <span id="blur-value">${settings.bgBlur}px</span></span>
                         <input type="range" id="bg-blur-slider" min="0" max="30" step="1" value="${settings.bgBlur}" style="width: 100%;">
                     </div>
 
