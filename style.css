@@ -16,7 +16,7 @@
     box-sizing: border-box;
     overflow: hidden;
     touch-action: none; 
-    transform-origin: top left; /* 크기 조절 시 기준점을 왼쪽 상단으로 고정 */
+    transform-origin: top left; 
 }
 #iphone-menu-container.grabbing {
     cursor: grabbing;
@@ -81,7 +81,7 @@
     height: 445px; 
     overflow-y: auto !important;
     display: block;
-    /* 상단 15px, 하단 30px 여백은 유지하고 좌우 여백만 0으로 제거 */
+    
     padding: 15px 0 30px 0 !important;
     box-sizing: border-box;
     position: relative;
@@ -102,35 +102,35 @@
 
 .iphone-shelf {
     display: flex !important;
-    /* 어플 아이템들을 가로 중앙으로 정렬 */
+    
     justify-content: center !important;
-    /* 아이템 사이의 간격 고정 */
+    
     gap: 30px !important;
-    /* 줄의 너비를 컨테이너에 꽉 차게 설정 */
+    
     width: 100% !important;
     height: 90px !important;
     align-items: center !important;
     position: relative !important;
     box-sizing: border-box !important;
-    /* 기존 패딩 제거 */
+    
     padding: 0 !important;
 }
 
 .iphone-app-item {
-    /* 너비를 아이콘 크기인 60px로 고정하여 오차 제거 */
+    
     width: 60px !important;
     display: flex;
     flex-direction: column;
     align-items: center;
     cursor: pointer;
     position: relative;
-    flex-shrink: 0; /* 크기가 줄어들지 않도록 고정 */
+    flex-shrink: 0; 
 }
 
 .iphone-app-icon {
     width: 60px !important;
     height: 60px !important;
-    background: rgba(0, 0, 0, 0.05); /* 이미지가 없을 때 아주 연한 회색 */
+    background: rgba(0, 0, 0, 0.05); 
     border-radius: 14px;
     display: flex;
     align-items: center;
@@ -153,7 +153,7 @@
     display: block !important;
 }
 
-/* 추가: 스프라이트 div가 꽉 차도록 설정 */
+
 .iphone-app-icon > div {
     width: 100% !important;
     height: 100% !important;
@@ -179,7 +179,7 @@
     display: block !important;
     background-repeat: no-repeat !important;
     background-attachment: scroll !important;
-    /* 화질 개선 및 렌더링 강제화 */
+    
     image-rendering: -webkit-optimize-contrast !important;
     image-rendering: high-quality !important;
     will-change: background-position;
@@ -190,7 +190,7 @@
     filter: brightness(0.95);
 }
 
-/* 배경 블러 레이어 기본값 수정 (JS에서 동적으로 제어함) */
+
 .iphone-bg-blur-layer {
     position: absolute;
     top: 0;
@@ -200,7 +200,7 @@
     background-size: cover;
     background-position: center;
     z-index: -1; 
-    transform: scale(1.1); /* 테두리 빈틈 방지 */
+    transform: scale(1.1); 
 }
 .iphone-bg-overlay {
     position: absolute;
@@ -209,16 +209,16 @@
     right: 0;
     bottom: 0;
     background-color: white;
-    z-index: -1; /* 블러 레이어보다는 위, 컨텐츠보다는 아래 */
+    z-index: -1; 
     pointer-events: none;
 }
 
-/* 아이콘 투명도 조절을 위한 클래스 */
+
 .iphone-app-icon {
     transition: opacity 0.2s;
 }
 
-/* 앱 텍스트 스타일 수정 (글꼴 크기 조절을 위해 고정값 제거) */
+
 .iphone-app-label {
     margin-top: 6px;
     color: #333;
@@ -253,12 +253,12 @@
 }
 
 .setting-group {
-    margin: 0 auto 15px auto; /* 가로 중앙 정렬 */
+    margin: 0 auto 15px auto; 
     padding: 15px;
-    background: rgba(255, 255, 255, 0.5); /* 요청하신 흰색 반투명 배경 유지 */
+    background: rgba(255, 255, 255, 0.5); 
     border-radius: 15px;
     border: 1px solid rgba(0,0,0,0.05);
-    width: 92%; /* 양옆에 패딩이 남도록 너비 조절 */
+    width: 92%; 
     box-sizing: border-box;
     display: block;
 }
@@ -303,7 +303,7 @@
     background: rgba(0, 0, 0, 0.05);
     border-radius: 6px;
     margin-right: 12px;
-    display: flex; /* 내부 아이콘 정렬용 */
+    display: flex; 
     align-items: center;
     justify-content: center;
     overflow: hidden;
@@ -316,7 +316,7 @@
     object-fit: cover;
 }
 
-/* 1. 미리보기 아이콘 크기 및 중앙 정렬 수정 */
+
 .mini-preview i {
     font-size: 12px !important; 
     line-height: 1 !important;
@@ -337,7 +337,7 @@
 .icon-upload-btn { background: #007aff; color: white; }
 .icon-reset-btn { background: #ff3b30; color: white; }
 
-/* 크로퍼 모달 스타일 */
+
 #iphone-cropper-modal {
     position: fixed;
     top: 0;
@@ -346,12 +346,12 @@
     height: 100vh;
     background: rgba(0,0,0,0.8);
     z-index: 11000;
-    display: none; /* JS에서 제어 */
-    align-items: center; /* 수직 중앙 */
-    justify-content: center; /* 수평 중앙 */
+    display: none; 
+    align-items: center; 
+    justify-content: center; 
 }
 
-/* 모바일 창 탈출 방지 및 중앙 정렬 */
+
 .cropper-content {
     background: white;
     padding: 20px;
@@ -413,7 +413,7 @@
     --settings-font-size: 11px;
 }
 
-/* settings view 내부 텍스트 전체 */
+
 #iphone-settings-view,
 #iphone-settings-view * {
     font-size: var(--settings-font-size);

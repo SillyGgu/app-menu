@@ -58,27 +58,27 @@ let customIconData = iconStorage.load();
         ctx.drawImage(cropperState.img, (size - iw)/2 + cropperState.x, (size - ih)/2 + cropperState.y, iw, ih);
     }
 
-    // 크로퍼 이벤트 바인딩 (init 함수 등에 추가)
+    
     function bindCropperEvents() {
         $('#cropper-zoom').on('input', function() {
             cropperState.zoom = parseFloat($(this).val());
             drawCropper();
         });
 
-        // 마우스 이벤트 (PC)
+        
         $('#cropper-canvas').on('mousedown', (e) => {
             cropperState.isDragging = true;
             cropperState.startX = e.clientX - cropperState.x;
             cropperState.startY = e.clientY - cropperState.y;
         });
 
-        // 터치 이벤트 (모바일 추가)
+        
         $('#cropper-canvas').on('touchstart', (e) => {
             const touch = e.touches[0];
             cropperState.isDragging = true;
             cropperState.startX = touch.clientX - cropperState.x;
             cropperState.startY = touch.clientY - cropperState.y;
-            // 스크롤 방지
+            
             if (e.cancelable) e.preventDefault();
         });
 
@@ -89,7 +89,7 @@ let customIconData = iconStorage.load();
             if (e.type === 'touchmove') {
                 clientX = e.touches[0].clientX;
                 clientY = e.touches[0].clientY;
-                // 터치 이동 시 화면 스크롤 방지
+                
                 if (e.cancelable) e.preventDefault();
             } else {
                 clientX = e.clientX;
@@ -124,7 +124,7 @@ let customIconData = iconStorage.load();
         extension_settings[extensionName] = {
             bgImage: '',
             hiddenApps: [],
-            appOrder: [],      // 어플 순서 저장용 배열 추가
+            appOrder: [],      
             pos: { top: 80, left: 20 },
             scale: 100,
             labelBold: true,
@@ -247,7 +247,7 @@ let customIconData = iconStorage.load();
 
         bindDragFunctionality($iphoneContainer);
 
-        // 설정 토글
+        
         $('.iphone-settings-toggle').on('click', function(e) {
             e.stopPropagation();
             if ($('#iphone-settings-view').is(':visible')) {
@@ -265,7 +265,7 @@ let customIconData = iconStorage.load();
             }
         });
 
-        // 이벤트 바인딩
+        
         $('#bold-toggle').on('change', function() { settings.labelBold = $(this).is(':checked'); saveSettingsDebounced(); });
         $('#autoclose-toggle').on('change', function() { settings.autoClose = $(this).is(':checked'); saveSettingsDebounced(); });
 
@@ -293,20 +293,20 @@ let customIconData = iconStorage.load();
         $('#icon-opacity-slider').on('input', function() {
             settings.iconOpacity = $(this).val();
             $('#icon-opacity-value').text(Math.round(settings.iconOpacity * 100) + '%');
-            refreshAppGrid(); // 아이콘에 즉시 반영
+            refreshAppGrid(); 
             saveSettingsDebounced();
         });
 
         $('#font-size-slider').on('input', function() {
             settings.fontSize = $(this).val();
             $('#font-size-value').text(settings.fontSize + 'px');
-            refreshAppGrid(); // 텍스트 크기 즉시 반영
+            refreshAppGrid(); 
             saveSettingsDebounced();
         });
         $('#sprite-x-slider').on('input', function() {
             settings.spriteXOffset = parseInt($(this).val());
             $('#sprite-x-value').text(settings.spriteXOffset + 'px');
-            refreshAppGrid(); // 즉시 그리드 재렌더링
+            refreshAppGrid(); 
             saveSettingsDebounced();
         });
         $('#bg-url-input').on('change', function() {
@@ -334,7 +334,7 @@ let customIconData = iconStorage.load();
                 'background-image': `url('${settings.bgImage}')`,
                 'filter': `blur(${blurVal}px)`
             });
-            // 흰색 덮개의 투명도 조절
+            
             $overlay.css('opacity', opacityVal);
         } else {
             $bgLayer.css({'background-image': 'none', 'filter': 'none'});
@@ -399,13 +399,13 @@ let customIconData = iconStorage.load();
         const scaleFactor = (settings.scale || 100) / 100;
 
         if (window.innerWidth <= 768) {
-            // 2. 모바일 호환성: chat 기준 정확한 중앙 정렬
+            
             const $chat = $('#chat');
             if ($chat.length > 0) {
                 const rect = $chat[0].getBoundingClientRect();
                 const mobileTopOffset = 70; 
                 
-                // chat 영역의 가로 정중앙 좌표 계산
+                
                 const centerX = rect.left + (rect.width / 2);
 
                 $iphoneContainer.css({
@@ -416,13 +416,13 @@ let customIconData = iconStorage.load();
                     'position': 'fixed',
                     'border-radius': '40px',
                     'width': '280px',
-                    // 모바일 전용 중앙 정렬 기준점 설정
+                    
                     'transform-origin': 'top center',
                     'transform': `translateX(-50%) scale(${scaleFactor})`
                 });
             }
         } else {
-            // PC 버전: 기존 코드를 그대로 유지합니다.
+            
             $iphoneContainer.css({
                 'top': settings.pos.top + 'px',
                 'left': settings.pos.left + 'px',
@@ -468,21 +468,21 @@ let customIconData = iconStorage.load();
             });
         });
 
-        // 순서 배열 관리 및 정렬
+        
         if (!settings.appOrder) settings.appOrder = [];
         
-        // 1. 새로운 앱이 있다면 순서 배열 끝에 추가
+        
         items.forEach(item => {
             if (!settings.appOrder.includes(item.id)) {
                 settings.appOrder.push(item.id);
             }
         });
 
-        // 2. 삭제된 앱이 있다면 순서 배열에서 제거
+        
         const currentIds = items.map(i => i.id);
         settings.appOrder = settings.appOrder.filter(id => currentIds.includes(id));
 
-        // 3. 저장된 appOrder 순서대로 정렬
+        
         items.sort((a, b) => {
             return settings.appOrder.indexOf(a.id) - settings.appOrder.indexOf(b.id);
         });
@@ -502,17 +502,17 @@ function refreshAppGrid() {
         const iconOpacity = settings.iconOpacity ?? 1.0;
         const fontSize = settings.fontSize ?? 10;
 
-        // --- 퍼즐(Global Masking) 계산 기준값 ---
+        
         const SPRITE_X_OFFSET = settings.spriteXOffset ?? 0; 
-        const SHELF_HEIGHT = 90;     // 한 줄 높이
-        const ICON_SIZE = 60;        // 아이콘 크기
-        const SIDE_MARGIN = 20;      // 좌우 여백
-        const GAP = 30;              // 아이콘 사이 간격
+        const SHELF_HEIGHT = 90;     
+        const ICON_SIZE = 60;        
+        const SIDE_MARGIN = 20;      
+        const GAP = 30;              
 
-        // 전체 그리드의 높이를 계산하여 마스킹 이미지가 끊기지 않고 끝까지 늘어나게 함
+        
         const totalRows = Math.ceil(visibleItems.length / 3);
         const totalGridHeight = totalRows * SHELF_HEIGHT;
-        // ------------------------------------------
+        
 
         for (let i = 0; i < visibleItems.length; i += 3) {
             const rowIndex = Math.floor(i / 3);
@@ -522,21 +522,21 @@ function refreshAppGrid() {
             rowItems.forEach((item, colIndex) => {
                 let iconContent = '';
                 
-                // 1순위: 개별 업로드 이미지
+                
                 if (customIconData.icons[item.id]) {
                     iconContent = `<img src="${customIconData.icons[item.id]}" style="width:100%; height:100%; object-fit:cover; border-radius:14px; display:block;">`;
                 } 
-                // 2순위: 전체 스프라이트 이미지 (퍼즐 모드)
+                
                 else if (customIconData.sprite.enabled && customIconData.sprite.url) {
-                    // 각 아이콘의 상대적 위치 계산
+                    
                     const iconLeftPos = SIDE_MARGIN + (colIndex * (ICON_SIZE + GAP));
-                    const posY = (rowIndex * SHELF_HEIGHT) + 15; // 상단 여백 보정
+                    const posY = (rowIndex * SHELF_HEIGHT) + 15; 
 
                     iconContent = `<div style="
                         width: 60px !important; 
                         height: 60px !important; 
                         background-image: url('${customIconData.sprite.url}') !important;
-                        /* 수정됨: 가로(width)는 auto로 두어 눌리지 않게 하고, 세로만 전체 높이에 맞춤 */
+                        
                         background-size: auto ${totalGridHeight}px !important; 
                         background-position: -${iconLeftPos - SPRITE_X_OFFSET}px -${posY}px !important;
                         background-repeat: no-repeat !important;
@@ -546,7 +546,7 @@ function refreshAppGrid() {
                         opacity: 1 !important;
                     "></div>`;
                 } 
-                // 3순위: 기본 폰트 아이콘
+                
                 else {
                     iconContent = `<i class="${item.iconClass}"></i>`;
                 }
@@ -588,16 +588,16 @@ function refreshAppGrid() {
     function renderVisibilitySettings() {
         const $list = $('#app-visibility-list');
         
-        // 이벤트 바인딩 해제 후 재등록
+        
         $list.off('click');
         $list.off('change');
 
-        // 1. 아코디언 토글
+        
         $list.on('click', '.app-info-trigger', function() {
             $(this).closest('.setting-item-container').find('.app-detail-settings').stop().slideToggle(200);
         });
 
-        // 2. 앱 가시성 체크
+        
         $list.on('change', '.app-vis-check', function() {
             const id = $(this).data('id');
             if (this.checked) {
@@ -608,7 +608,7 @@ function refreshAppGrid() {
             saveSettingsDebounced();
         });
 
-        // 3. 순서 변경 버튼 이벤트 (추가된 부분)
+        
         $list.on('click', '.order-btn', function(e) {
             e.stopPropagation();
             const id = $(this).data('id');
@@ -617,18 +617,18 @@ function refreshAppGrid() {
             const newIndex = currentIndex + direction;
 
             if (newIndex >= 0 && newIndex < settings.appOrder.length) {
-                // 배열 내 위치 교체
+                
                 const temp = settings.appOrder[currentIndex];
                 settings.appOrder[currentIndex] = settings.appOrder[newIndex];
                 settings.appOrder[newIndex] = temp;
                 
                 saveSettingsDebounced();
-                renderVisibilitySettings(); // UI 즉시 갱신
-                refreshAppGrid();           // 메인 그리드 갱신
+                renderVisibilitySettings(); 
+                refreshAppGrid();           
             }
         });
 
-        // 4. 아이콘 업로드
+        
         $list.on('click', '.icon-upload-btn', function() {
             const appId = $(this).data('id');
             const input = document.createElement('input');
@@ -641,7 +641,7 @@ function refreshAppGrid() {
             input.click();
         });
 
-        // 5. 아이콘 초기화
+        
         $list.on('click', '.icon-reset-btn', function() {
             const appId = $(this).data('id');
             delete customIconData.icons[appId];
@@ -650,7 +650,7 @@ function refreshAppGrid() {
             refreshAppGrid();
         });
 
-        // 6. 스프라이트 좌표 변경
+        
         $list.on('change', '.sprite-row, .sprite-col', function() {
             const $container = $(this).closest('.setting-item-container');
             const appId = $container.data('app-id');
@@ -705,16 +705,16 @@ function refreshAppGrid() {
 
     function init() {
         createIphoneMenu();
-        bindCropperEvents(); // 크로퍼 이벤트
+        bindCropperEvents(); 
 
-        // 스프라이트 URL 입력 처리
+        
         $('#sprite-url-input').on('change', function() {
             customIconData.sprite.url = $(this).val();
             iconStorage.save(customIconData);
             refreshAppGrid();
         });
 
-        // 스프라이트 토글 처리
+        
         $('#sprite-enable-toggle').on('change', function() {
             customIconData.sprite.enabled = $(this).is(':checked');
             iconStorage.save(customIconData);
