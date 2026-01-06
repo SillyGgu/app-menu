@@ -352,12 +352,30 @@
 }
 
 
+.cropper-canvas-container {
+    position: relative;
+    width: 300px;   /* 260px에서 300px로 변경하여 캔버스 크기와 일치시킴 */
+    height: 300px;  /* 260px에서 300px로 변경 */
+    margin: 15px auto;
+    background: #000;
+    overflow: hidden;
+    border-radius: 14px;
+    touch-action: none; /* 드래그 시 브라우저 스크롤 방지 */
+}
+
+#cropper-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: move;
+}
+
 .cropper-content {
     background: white;
     padding: 20px;
     border-radius: 20px;
-    width: 90%;
-    max-width: 320px;
+    width: fit-content; /* 내부 컨텐츠(300px 캔버스)에 맞게 조정 */
+    max-width: 95%;
     text-align: center;
     position: absolute;
     top: 50%;
@@ -366,22 +384,16 @@
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
-.cropper-canvas-container {
-    position: relative;
-    width: 260px;
-    height: 260px;
-    margin: 15px auto;
-    background: #333;
-    overflow: hidden;
-    border-radius: 14px;
-}
-
 .cropper-overlay {
     position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
     border: 2px solid #007aff;
     pointer-events: none;
     box-sizing: border-box;
+    border-radius: 14px; /* 아이콘 모양과 일치하도록 */
 }
 
 .cropper-controls input { width: 100%; margin: 10px 0; }

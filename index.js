@@ -46,59 +46,65 @@ let customIconData = iconStorage.load();
 
     function drawCropper() {
         const canvas = document.getElementById('cropper-canvas');
+        if (!canvas || !cropperState.img) return;
         const ctx = canvas.getContext('2d');
         const size = 300;
+        
+        // 캔버스 크기 고정
         canvas.width = size;
         canvas.height = size;
 
         ctx.clearRect(0, 0, size, size);
+        
+        // 배경을 검은색으로 채워 빈 공간이 투명하게 보이지 않게 함
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, size, size);
+
         const iw = cropperState.img.width * cropperState.zoom;
         const ih = cropperState.img.height * cropperState.zoom;
         
-        ctx.drawImage(cropperState.img, (size - iw)/2 + cropperState.x, (size - ih)/2 + cropperState.y, iw, ih);
+        const drawX = (size - iw) / 2 + cropperState.x;
+        const drawY = (size - ih) / 2 + cropperState.y;
+        
+        ctx.drawImage(cropperState.img, drawX, drawY, iw, ih);
     }
 
     
     function bindCropperEvents() {
+        const canvas = document.getElementById('cropper-canvas');
+
         $('#cropper-zoom').on('input', function() {
             cropperState.zoom = parseFloat($(this).val());
             drawCropper();
         });
 
-        
-        $('#cropper-canvas').on('mousedown', (e) => {
-            cropperState.isDragging = true;
-            cropperState.startX = e.clientX - cropperState.x;
-            cropperState.startY = e.clientY - cropperState.y;
-        });
+        const getPointerPos = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        };
 
-        
-        $('#cropper-canvas').on('touchstart', (e) => {
-            const touch = e.touches[0];
+        $('#cropper-canvas').on('mousedown touchstart', (e) => {
             cropperState.isDragging = true;
-            cropperState.startX = touch.clientX - cropperState.x;
-            cropperState.startY = touch.clientY - cropperState.y;
-            
+            const pos = getPointerPos(e.originalEvent || e);
+            cropperState.startX = pos.x - cropperState.x;
+            cropperState.startY = pos.y - cropperState.y;
             if (e.cancelable) e.preventDefault();
         });
 
         $(document).on('mousemove touchmove', (e) => {
             if (!cropperState.isDragging) return;
             
-            let clientX, clientY;
-            if (e.type === 'touchmove') {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-                
-                if (e.cancelable) e.preventDefault();
-            } else {
-                clientX = e.clientX;
-                clientY = e.clientY;
-            }
-
-            cropperState.x = clientX - cropperState.startX;
-            cropperState.y = clientY - cropperState.startY;
+            const pos = getPointerPos(e.originalEvent || e);
+            cropperState.x = pos.x - cropperState.startX;
+            cropperState.y = pos.y - cropperState.startY;
             drawCropper();
+            
+            if (e.cancelable && e.type === 'touchmove') e.preventDefault();
         });
 
         $(document).on('mouseup touchend', () => { 
@@ -107,6 +113,7 @@ let customIconData = iconStorage.load();
 
         $('#cropper-save').on('click', () => {
             const canvas = document.getElementById('cropper-canvas');
+            // 최종적으로 캔버스에 보이는 그대로를 base64로 추출
             const base64 = canvas.toDataURL('image/png');
             $('body').css('cursor', 'default');
             customIconData.icons[cropperState.appId] = base64;
