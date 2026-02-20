@@ -151,13 +151,29 @@ let customIconData = iconStorage.load();
         const html = `
             <div id="iphone-menu-container">
                 <div class="iphone-bg-blur-layer"></div>
-                <div class="iphone-bg-overlay"></div> 
-                <div id="iphone-menu-header">
-                    <span id="iphone-title">Extensions</span>
-                    <div class="iphone-settings-toggle">
-                        <i class="fa-solid fa-gear"></i>
+                <div class="iphone-bg-overlay"></div>
+
+
+                <div id="iphone-drag-handle">
+                    <div id="iphone-status-bar">
+                        <span id="iphone-time">9:41</span>
+                        <div id="iphone-status-icons">
+                            <i class="fa-solid fa-signal"></i>
+                            <i class="fa-solid fa-wifi"></i>
+                            <i class="fa-solid fa-battery-full"></i>
+                        </div>
+                    </div>
+                    <div id="iphone-notch"></div>
+
+                    <div id="iphone-menu-header">
+                        <span id="iphone-title">Extensions</span>
+                        <div class="iphone-settings-toggle">
+                            <i class="fa-solid fa-gear"></i>
+                        </div>
                     </div>
                 </div>
+
+
                 <div id="iphone-menu-grid-view" class="iphone-view"></div>
                 <div id="iphone-settings-view" class="iphone-view" style="display:none;">
                     <div class="setting-group">
@@ -223,10 +239,16 @@ let customIconData = iconStorage.load();
                         <div id="app-visibility-list"></div>
                     </div>
                 </div>
+
+                <div id="iphone-home-indicator-container">
+                    <div id="iphone-home-indicator"></div>
+                </div>
+
             </div>
             <div id="iphone-global-tooltip"></div>
         `;
         $('body').append(html);
+		
         const cropperHtml = `
             <div id="iphone-cropper-modal" style="display:none;">
                 <div class="cropper-content">
