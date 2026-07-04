@@ -14,7 +14,10 @@ let customIconData = iconStorage.load();
 (function() {
     const extensionName = "app-menu";
     let $iphoneContainer;
+    let $settingsModal;
     let $globalTooltip;
+    let menuObserver;
+    let refreshTimer;
     let cropperState = {
         img: null,
         appId: null,
@@ -127,22 +130,23 @@ let customIconData = iconStorage.load();
 
         $('#cropper-cancel').on('click', () => $('#iphone-cropper-modal').fadeOut(200));
     }
-    if (!extension_settings[extensionName]) {
-        extension_settings[extensionName] = {
-            bgImage: '',
-            hiddenApps: [],
-            appOrder: [],      
-            pos: { top: 80, left: 20 },
-            scale: 100,
-            labelBold: true,
-            bgBlur: 5,
-            bgOpacity: 0.4,
-            iconOpacity: 1.0,
-            fontSize: 10,
-            autoClose: true,
-            spriteXOffset: 0
-        };
-    }
+	if (!extension_settings[extensionName]) {
+		extension_settings[extensionName] = {};
+	}
+	const _s = extension_settings[extensionName];
+	if (_s.bgImage === undefined)      _s.bgImage = '';
+	if (_s.hiddenApps === undefined)   _s.hiddenApps = [];
+	if (_s.appOrder === undefined)     _s.appOrder = [];
+	if (_s.pos === undefined)          _s.pos = { top: 80, left: 20 };
+	if (_s.scale === undefined)        _s.scale = 100;
+	if (_s.labelBold === undefined)    _s.labelBold = true;
+	if (_s.bgBlur === undefined)       _s.bgBlur = 5;
+	if (_s.bgOpacity === undefined)    _s.bgOpacity = 0.4;
+	if (_s.iconOpacity === undefined)  _s.iconOpacity = 1.0;
+	if (_s.fontSize === undefined)     _s.fontSize = 10;
+	if (_s.autoClose === undefined)    _s.autoClose = true;
+	if (_s.spriteXOffset === undefined) _s.spriteXOffset = 0;
+	if (_s.frameColor === undefined)   _s.frameColor = '#101114';
     const settings = extension_settings[extensionName];
 
     async function createIphoneMenu() {
@@ -150,8 +154,10 @@ let customIconData = iconStorage.load();
 
         const html = `
             <div id="iphone-menu-container">
-                <div class="iphone-bg-blur-layer"></div>
-                <div class="iphone-bg-overlay"></div>
+                <div class="iphone-screen-backdrop">
+                    <div class="iphone-bg-blur-layer"></div>
+                    <div class="iphone-bg-overlay"></div>
+                </div>
 
 
                 <div id="iphone-drag-handle">
@@ -179,6 +185,22 @@ let customIconData = iconStorage.load();
                     <div class="setting-group">
                         <span class="setting-title">배경 이미지 URL</span>
                         <input type="text" id="bg-url-input" placeholder="URL 입력" value="${settings.bgImage}">
+                    </div>
+                    <div class="setting-group">
+                        <span class="setting-title">폰 프레임 컬러</span>
+                        <div class="frame-color-picker">
+                            <div id="frame-color-preview" class="frame-color-preview"></div>
+                            <div class="frame-color-controls">
+                                <div id="frame-color-area" class="frame-color-area">
+                                    <div id="frame-color-area-thumb" class="frame-color-thumb"></div>
+                                </div>
+                                <div id="frame-hue-strip" class="frame-hue-strip">
+                                    <div id="frame-hue-thumb" class="frame-hue-thumb"></div>
+                                </div>
+                                <div id="frame-color-swatches" class="frame-color-swatches"></div>
+                                <input type="text" id="frame-color-hex" value="${settings.frameColor}" maxlength="7" spellcheck="false">
+                            </div>
+                        </div>
                     </div>
                     <div class="setting-group">
                         <span class="setting-title">전체 어플 덮어씌우기</span>
@@ -248,6 +270,20 @@ let customIconData = iconStorage.load();
             <div id="iphone-global-tooltip"></div>
         `;
         $('body').append(html);
+        $('body').append(`
+            <div id="iphone-settings-modal" style="display:none;">
+                <div id="iphone-settings-panel">
+                    <div id="iphone-settings-header">
+                        <span>Settings</span>
+                        <button type="button" id="iphone-settings-close" title="Close">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div id="iphone-settings-content"></div>
+                </div>
+            </div>
+        `);
+        $('#iphone-settings-content').append($('#iphone-settings-view').removeClass('iphone-view').show());
 		
         const cropperHtml = `
             <div id="iphone-cropper-modal" style="display:none;">
@@ -269,9 +305,11 @@ let customIconData = iconStorage.load();
         `;
         $('body').append(cropperHtml);
         $iphoneContainer = $('#iphone-menu-container');
+        $settingsModal = $('#iphone-settings-modal');
         $globalTooltip = $('#iphone-global-tooltip');
 
         applyBackground();
+        applyFrameColor();
         applyCurrentPosition();
 
         bindDragFunctionality($iphoneContainer);
@@ -279,19 +317,12 @@ let customIconData = iconStorage.load();
         
         $('.iphone-settings-toggle').on('click', function(e) {
             e.stopPropagation();
-            if ($('#iphone-settings-view').is(':visible')) {
-                $('#iphone-settings-view').hide();
-                $('#iphone-menu-grid-view').show();
-                $('#iphone-title').text('Extensions');
-                $(this).find('i').attr('class', 'fa-solid fa-gear');
-                refreshAppGrid();
-            } else {
-                $('#iphone-menu-grid-view').hide();
-                $('#iphone-settings-view').show();
-                $('#iphone-title').text('Settings');
-                $(this).find('i').attr('class', 'fa-solid fa-xmark');
-                renderVisibilitySettings();
-            }
+            openSettingsModal();
+        });
+
+        $('#iphone-settings-close').on('click', closeSettingsModal);
+        $settingsModal.on('mousedown', function(e) {
+            if (e.target === this) closeSettingsModal();
         });
 
         
@@ -344,14 +375,60 @@ let customIconData = iconStorage.load();
             saveSettingsDebounced();
         });
 
+        bindFrameColorPicker();
+
         $(document).on('mousedown', (e) => {
             if (!settings.autoClose) return;
+            if ($settingsModal && ($settingsModal.is(e.target) || $settingsModal.has(e.target).length > 0)) return;
+            if ($('#iphone-cropper-modal').is(':visible')) return;
             if (!$iphoneContainer.is(e.target) && $iphoneContainer.has(e.target).length === 0 && !$(e.target).closest('#extensionsMenuButton').length) {
                 $iphoneContainer.fadeOut(200);
                 $globalTooltip.hide();
             }
         });
     }
+
+    function openSettingsModal() {
+        renderVisibilitySettings();
+        $settingsModal.stop(true, true).css({ display: 'flex', opacity: 0 }).animate({ opacity: 1 }, 160);
+    }
+
+    function closeSettingsModal() {
+        if (!$settingsModal) return;
+        $settingsModal.stop(true, true).animate({ opacity: 0 }, 160, function() {
+            $settingsModal.hide();
+            refreshAppGrid();
+        });
+    }
+
+    function scheduleMenuRefresh() {
+        clearTimeout(refreshTimer);
+        refreshTimer = setTimeout(() => {
+            refreshAppGrid();
+            if ($settingsModal && $settingsModal.is(':visible')) {
+                renderVisibilitySettings();
+            }
+        }, 150);
+    }
+
+    function bindMenuObserver() {
+        const menu = document.getElementById('extensionsMenu');
+        if (!menu || menuObserver) return;
+
+        menuObserver = new MutationObserver(scheduleMenuRefresh);
+        menuObserver.observe(menu, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['class', 'style', 'title']
+        });
+    }
+
+    function rescanMenu() {
+        bindMenuObserver();
+        scheduleMenuRefresh();
+    }
+
     function applyBackground() {
         const $bgLayer = $('.iphone-bg-blur-layer');
         const $overlay = $('.iphone-bg-overlay');
@@ -367,8 +444,184 @@ let customIconData = iconStorage.load();
             $overlay.css('opacity', opacityVal);
         } else {
             $bgLayer.css({'background-image': 'none', 'filter': 'none'});
-            $overlay.css('opacity', 0);
+            $overlay.css('opacity', 0.96);
         }
+    }
+
+    function applyFrameColor() {
+        const color = normalizeHexColor(settings.frameColor) || '#101114';
+        settings.frameColor = color;
+        document.documentElement.style.setProperty('--app-menu-frame-color', color);
+        if ($iphoneContainer) {
+            $iphoneContainer.css('--phone-frame-color', color);
+        }
+        $('#frame-color-preview').css({ background: color, color: color });
+        $('#frame-color-hex').val(color);
+    }
+
+    function bindFrameColorPicker() {
+        const swatches = ['#101114', '#f8f8fa', '#475569', '#0f766e', '#7c3aed', '#be123c', '#c2410c', '#facc15'];
+        const $swatches = $('#frame-color-swatches');
+        const area = document.getElementById('frame-color-area');
+        const areaThumb = document.getElementById('frame-color-area-thumb');
+        const hueStrip = document.getElementById('frame-hue-strip');
+        const hueThumb = document.getElementById('frame-hue-thumb');
+        let picker = hexToHsv(settings.frameColor);
+
+        $swatches.empty();
+        swatches.forEach(color => {
+            const $button = $(`<button type="button" class="frame-color-swatch" aria-label="${color}" style="background:${color}"></button>`);
+            $button.on('click', () => setFrameColor(color));
+            $swatches.append($button);
+        });
+
+        function syncPicker(color) {
+            picker = hexToHsv(color);
+            const hueColor = hsvToHex(picker.h, 100, 100);
+            $(area).css('background-color', hueColor);
+            areaThumb.style.left = `${picker.s}%`;
+            areaThumb.style.top = `${100 - picker.v}%`;
+            hueThumb.style.left = `${picker.h / 360 * 100}%`;
+        }
+
+        function setFrameColor(color) {
+            const normalized = normalizeHexColor(color);
+            if (!normalized) return;
+            settings.frameColor = normalized;
+            applyFrameColor();
+            syncPicker(normalized);
+            saveSettingsDebounced();
+        }
+
+        function updateFromArea(e) {
+            const rect = area.getBoundingClientRect();
+            const x = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
+            const y = Math.min(Math.max(e.clientY - rect.top, 0), rect.height);
+            picker.s = Math.round((x / rect.width) * 100);
+            picker.v = Math.round(100 - (y / rect.height) * 100);
+            setFrameColor(hsvToHex(picker.h, picker.s, picker.v));
+        }
+
+        function updateFromHue(e) {
+            const rect = hueStrip.getBoundingClientRect();
+            const x = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
+            picker.h = Math.round((x / rect.width) * 360);
+            setFrameColor(hsvToHex(picker.h, picker.s, picker.v));
+        }
+
+        function bindPointerDrag(element, onMove) {
+            element.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                element.setPointerCapture(e.pointerId);
+                onMove(e);
+            });
+            element.addEventListener('pointermove', (e) => {
+                if (e.buttons !== 1) return;
+                onMove(e);
+            });
+        }
+
+        syncPicker(settings.frameColor);
+        bindPointerDrag(area, updateFromArea);
+        bindPointerDrag(hueStrip, updateFromHue);
+        $('#frame-color-hex').on('change', function() {
+            setFrameColor($(this).val());
+        });
+    }
+
+    function normalizeHexColor(value) {
+        const raw = String(value || '').trim();
+        const full = raw.startsWith('#') ? raw : `#${raw}`;
+        const shortMatch = full.match(/^#([0-9a-f]{3})$/i);
+        if (shortMatch) {
+            return `#${shortMatch[1].split('').map(ch => ch + ch).join('')}`.toLowerCase();
+        }
+        return /^#[0-9a-f]{6}$/i.test(full) ? full.toLowerCase() : null;
+    }
+
+    function hexToHsv(hex) {
+        const normalized = normalizeHexColor(hex) || '#101114';
+        const r = parseInt(normalized.slice(1, 3), 16) / 255;
+        const g = parseInt(normalized.slice(3, 5), 16) / 255;
+        const b = parseInt(normalized.slice(5, 7), 16) / 255;
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const delta = max - min;
+        let h = 0;
+
+        if (delta !== 0) {
+            if (max === r) h = 60 * (((g - b) / delta) % 6);
+            else if (max === g) h = 60 * ((b - r) / delta + 2);
+            else h = 60 * ((r - g) / delta + 4);
+        }
+
+        if (h < 0) h += 360;
+        return {
+            h: Math.round(h),
+            s: max === 0 ? 0 : Math.round((delta / max) * 100),
+            v: Math.round(max * 100)
+        };
+    }
+
+    function hsvToHex(h, s, v) {
+        s /= 100;
+        v /= 100;
+        const c = v * s;
+        const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+        const m = v - c;
+        let r = 0, g = 0, b = 0;
+
+        if (h < 60) [r, g, b] = [c, x, 0];
+        else if (h < 120) [r, g, b] = [x, c, 0];
+        else if (h < 180) [r, g, b] = [0, c, x];
+        else if (h < 240) [r, g, b] = [0, x, c];
+        else if (h < 300) [r, g, b] = [x, 0, c];
+        else [r, g, b] = [c, 0, x];
+
+        const toHex = val => Math.round((val + m) * 255).toString(16).padStart(2, '0');
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+
+    function hexToHsl(hex) {
+        const normalized = normalizeHexColor(hex) || '#101114';
+        const r = parseInt(normalized.slice(1, 3), 16) / 255;
+        const g = parseInt(normalized.slice(3, 5), 16) / 255;
+        const b = parseInt(normalized.slice(5, 7), 16) / 255;
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        let h = 0;
+        let s = 0;
+        const l = (max + min) / 2;
+
+        if (max !== min) {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+            else if (max === g) h = (b - r) / d + 2;
+            else h = (r - g) / d + 4;
+            h *= 60;
+        }
+
+        return { h: Math.round(h), s: Math.round(s * 100), l: Math.round(l * 100) };
+    }
+
+    function hslToHex(h, s, l) {
+        s /= 100;
+        l /= 100;
+        const c = (1 - Math.abs(2 * l - 1)) * s;
+        const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+        const m = l - c / 2;
+        let r = 0, g = 0, b = 0;
+
+        if (h < 60) [r, g, b] = [c, x, 0];
+        else if (h < 120) [r, g, b] = [x, c, 0];
+        else if (h < 180) [r, g, b] = [0, c, x];
+        else if (h < 240) [r, g, b] = [0, x, c];
+        else if (h < 300) [r, g, b] = [x, 0, c];
+        else [r, g, b] = [c, 0, x];
+
+        const toHex = val => Math.round((val + m) * 255).toString(16).padStart(2, '0');
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
     }
 	
     function bindDragFunctionality($element) {
@@ -467,31 +720,37 @@ let customIconData = iconStorage.load();
     }
     function getAllMenuItems() {
         const items = [];
-        $('#extensionsMenu .list-group-item').each(function() {
+        const seen = new Set();
+        const candidates = $('#extensionsMenu .list-group-item, #extensionsMenu .extensionsMenuExtensionButton, #extensionsMenu .interactable, #extensionsMenu button, #extensionsMenu [role="button"], #extensionsMenu [tabindex]');
+
+        candidates.each(function() {
             const $item = $(this);
+            if (!$item.closest('#extensionsMenu').length) return;
+            if ($item.closest('#iphone-menu-container, #iphone-settings-modal').length) return;
+            if ($item.parentsUntil('#extensionsMenu').filter('.list-group-item, .extensionsMenuExtensionButton, button, [role="button"]').length) return;
+
+            const labelFromChild = $item.find('.list-group-item-label, .menu_button, .menu-label, span').first().text().trim();
+            const labelFromText = $item.text().replace(/\s+/g, ' ').trim();
+            let label = labelFromChild ||
+                ($item.attr('aria-label') || '').trim() ||
+                ($item.attr('title') || '').trim() ||
+                ($item.attr('data-name') || '').trim() ||
+                ($item.attr('data-extension-name') || '').trim() ||
+                labelFromText;
+
+            if (!label && !$item.attr('id')) return;
+            const id = getStableAppId($item, label || 'App');
+            if (seen.has(id)) return;
+            seen.add(id);
+
             let iconClass = $item.find('i').first().attr('class') || 
                             $item.find('[class*="fa-"]').first().attr('class') ||
                             $item.find('.extensionsMenuExtensionButton').first().attr('class') ||
                             'fa-solid fa-cube';
             
-            let label = '';
-            if ($item.find('.list-group-item-label').length) {
-                label = $item.find('.list-group-item-label').first().text().trim();
-            } 
-            if (!label && $item.find('span').length) {
-                label = $item.find('span').first().text().trim();
-            }
-            if (!label) {
-                label = $item.contents().filter(function() {
-                    return this.nodeType === 3; 
-                }).text().trim();
-            }
-            label = label || $item.attr('title') || 'App';
-            const id = $item.attr('id') || label; 
-            
             items.push({
                 id: id,
-                label: label,
+                label: label || 'App',
                 iconClass: iconClass,
                 originalElement: $item
             });
@@ -499,24 +758,44 @@ let customIconData = iconStorage.load();
 
         
         if (!settings.appOrder) settings.appOrder = [];
-        
-        
+
+        // appOrder에 없는 신규 항목은 맨 뒤에 추가
         items.forEach(item => {
             if (!settings.appOrder.includes(item.id)) {
                 settings.appOrder.push(item.id);
             }
         });
 
-        
-        const currentIds = items.map(i => i.id);
-        settings.appOrder = settings.appOrder.filter(id => currentIds.includes(id));
-
-        
+        // appOrder 기준으로 정렬
         items.sort((a, b) => {
             return settings.appOrder.indexOf(a.id) - settings.appOrder.indexOf(b.id);
         });
 
         return items;
+    }
+
+    function getStableAppId($item, fallbackLabel) {
+        const attrs = ['id', 'data-extension-name', 'data-name', 'data-module', 'data-i18n', 'title', 'aria-label'];
+        for (const attr of attrs) {
+            const value = ($item.attr(attr) || '').trim();
+            if (value) return value;
+        }
+
+        const href = ($item.attr('href') || '').trim();
+        if (href && href !== '#') return href;
+
+        return fallbackLabel.trim();
+    }
+
+    function activateOriginalItem($item) {
+        const element = $item && $item[0];
+        if (!element) return;
+
+        element.dispatchEvent(new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window
+        }));
     }
 
 function refreshAppGrid() {
@@ -535,8 +814,8 @@ function refreshAppGrid() {
         const SPRITE_X_OFFSET = settings.spriteXOffset ?? 0; 
         const SHELF_HEIGHT = 90;     
         const ICON_SIZE = 60;        
-        const SIDE_MARGIN = 20;      
-        const GAP = 30;              
+        const SIDE_MARGIN = 17;      
+        const GAP = 24;              
 
         
         const totalRows = Math.ceil(visibleItems.length / 3);
@@ -591,7 +870,7 @@ function refreshAppGrid() {
 
                 $app.on('click', (e) => {
                     e.stopPropagation();
-                    item.originalElement.click();
+                    activateOriginalItem(item.originalElement);
                     if (settings.autoClose) {
                         $iphoneContainer.fadeOut(200);
                         $globalTooltip.hide();
@@ -616,17 +895,14 @@ function refreshAppGrid() {
 	
     function renderVisibilitySettings() {
         const $list = $('#app-visibility-list');
-        
-        
+
         $list.off('click');
         $list.off('change');
 
-        
         $list.on('click', '.app-info-trigger', function() {
             $(this).closest('.setting-item-container').find('.app-detail-settings').stop().slideToggle(200);
         });
 
-        
         $list.on('change', '.app-vis-check', function() {
             const id = $(this).data('id');
             if (this.checked) {
@@ -637,27 +913,6 @@ function refreshAppGrid() {
             saveSettingsDebounced();
         });
 
-        
-        $list.on('click', '.order-btn', function(e) {
-            e.stopPropagation();
-            const id = $(this).data('id');
-            const direction = $(this).hasClass('up') ? -1 : 1;
-            const currentIndex = settings.appOrder.indexOf(id);
-            const newIndex = currentIndex + direction;
-
-            if (newIndex >= 0 && newIndex < settings.appOrder.length) {
-                
-                const temp = settings.appOrder[currentIndex];
-                settings.appOrder[currentIndex] = settings.appOrder[newIndex];
-                settings.appOrder[newIndex] = temp;
-                
-                saveSettingsDebounced();
-                renderVisibilitySettings(); 
-                refreshAppGrid();           
-            }
-        });
-
-        
         $list.on('click', '.icon-upload-btn', function() {
             const appId = $(this).data('id');
             const input = document.createElement('input');
@@ -670,7 +925,6 @@ function refreshAppGrid() {
             input.click();
         });
 
-        
         $list.on('click', '.icon-reset-btn', function() {
             const appId = $(this).data('id');
             delete customIconData.icons[appId];
@@ -679,13 +933,11 @@ function refreshAppGrid() {
             refreshAppGrid();
         });
 
-        
         $list.on('change', '.sprite-row, .sprite-col', function() {
             const $container = $(this).closest('.setting-item-container');
             const appId = $container.data('app-id');
             const r = parseInt($container.find('.sprite-row').val()) || 0;
             const c = parseInt($container.find('.sprite-col').val()) || 0;
-            
             customIconData.spriteOffsets[appId] = { r, c };
             iconStorage.save(customIconData);
             refreshAppGrid();
@@ -699,13 +951,12 @@ function refreshAppGrid() {
             const isChecked = !settings.hiddenApps.includes(item.id);
             const customIcon = customIconData.icons[item.id];
             const offset = customIconData.spriteOffsets[item.id] || { r: 0, c: 0 };
-            
+
             const $row = $(`
                 <div class="setting-item-container" data-app-id="${item.id}">
                     <div class="setting-item main-row">
-                        <div class="order-controls" style="display:flex; flex-direction:column; margin-right:10px;">
-                            <div class="order-btn up" data-id="${item.id}" style="cursor:pointer; padding:2px;"><i class="fa-solid fa-caret-up"></i></div>
-                            <div class="order-btn down" data-id="${item.id}" style="cursor:pointer; padding:2px;"><i class="fa-solid fa-caret-down"></i></div>
+                        <div class="drag-handle" draggable="true" title="Drag to reorder">
+                            <i class="fa-solid fa-grip-vertical"></i>
                         </div>
                         <div class="app-info-trigger" style="flex:1; cursor:pointer; display:flex; align-items:center;">
                             <div class="mini-preview" id="prev-${item.id}">
@@ -730,11 +981,82 @@ function refreshAppGrid() {
             `);
             $list.append($row);
         });
+
+        // 드래그 앤 드롭 순서 변경
+        let dragSrcEl = null;
+        let dragOverEl = null;
+
+        $list.find('.setting-item-container').each(function() {
+            const el = this;
+            const handle = $(el).find('.drag-handle')[0];
+
+            function clearDragState() {
+                dragSrcEl = null;
+                dragOverEl = null;
+                $list.find('.setting-item-container').removeClass('is-dragging drag-over');
+            }
+
+            handle.addEventListener('dragstart', function(e) {
+                e.stopPropagation();
+                dragSrcEl = this;
+                dragOverEl = null;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', $(el).data('app-id'));
+                $(el).addClass('is-dragging');
+            });
+			
+            handle.addEventListener('dragend', clearDragState);
+            el.addEventListener('dragend', clearDragState);
+
+            el.addEventListener('dragover', function(e) {
+                const sourceContainer = dragSrcEl ? $(dragSrcEl).closest('.setting-item-container')[0] : null;
+                if (!sourceContainer || sourceContainer === this) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                if (dragOverEl !== this) {
+                    if (dragOverEl) $(dragOverEl).removeClass('drag-over');
+                    dragOverEl = this;
+                    $(this).addClass('drag-over');
+                }
+                return false;
+            });
+
+            el.addEventListener('dragleave', function() {
+                if (dragOverEl === this) {
+                    $(this).removeClass('drag-over');
+                    dragOverEl = null;
+                }
+            });
+
+            el.addEventListener('drop', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                $list.find('.setting-item-container').removeClass('drag-over');
+                const sourceContainer = dragSrcEl ? $(dragSrcEl).closest('.setting-item-container')[0] : null;
+                if (!sourceContainer || sourceContainer === this) return;
+
+                const fromId = $(dragSrcEl).closest('.setting-item-container').data('app-id');
+                const toId = $(this).data('app-id');
+
+                const fromIdx = settings.appOrder.indexOf(fromId);
+                const toIdx = settings.appOrder.indexOf(toId);
+
+                if (fromIdx !== -1 && toIdx !== -1) {
+                    settings.appOrder.splice(fromIdx, 1);
+                    settings.appOrder.splice(toIdx, 0, fromId);
+                    saveSettingsDebounced();
+                    renderVisibilitySettings();
+                    refreshAppGrid();
+                }
+                return false;
+            });
+        });
     }
 
     function init() {
         createIphoneMenu();
         bindCropperEvents(); 
+        bindMenuObserver();
 
         
         $('#sprite-url-input').on('change', function() {
@@ -758,7 +1080,8 @@ function refreshAppGrid() {
                 $globalTooltip.hide();
             } else {
                 $('#extensionsMenu').addClass('iphone-mode-active');
-                refreshAppGrid();
+                bindMenuObserver();
+                scheduleMenuRefresh();
                 applyCurrentPosition(); 
                 $iphoneContainer.fadeIn(200);
             }
@@ -774,5 +1097,8 @@ function refreshAppGrid() {
 
     $(document).ready(() => {
         init();
+        setTimeout(rescanMenu, 500);
+        setTimeout(rescanMenu, 1500);
+        setTimeout(rescanMenu, 3000);
     });
 })();
