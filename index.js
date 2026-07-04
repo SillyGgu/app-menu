@@ -7,6 +7,10 @@ import {
     extension_settings,
     loadExtensionSettings
 } from '../../../extensions.js';
+import {
+    Popup,
+    POPUP_TYPE
+} from '../../../popup.js';
 import { iconStorage } from './icon-storage.js';
 
 let customIconData = iconStorage.load();
@@ -14,7 +18,8 @@ let customIconData = iconStorage.load();
 (function() {
     const extensionName = "app-menu";
     let $iphoneContainer;
-    let $settingsModal;
+    let $settingsStorage;
+    let settingsPopup;
     let $globalTooltip;
     let menuObserver;
     let refreshTimer;
@@ -271,14 +276,9 @@ let customIconData = iconStorage.load();
         `;
         $('body').append(html);
         $('body').append(`
-            <div id="iphone-settings-modal" style="display:none;">
-                <div id="iphone-settings-panel">
-                    <div id="iphone-settings-header">
-                        <span>Settings</span>
-                        <button type="button" id="iphone-settings-close" title="Close">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
+            <div id="iphone-settings-storage" style="display:none;">
+                <div id="iphone-settings-popup-content" class="iphone-settings-popup">
+                    <div class="iphone-settings-popup-title">Settings</div>
                     <div id="iphone-settings-content"></div>
                 </div>
             </div>
@@ -305,7 +305,7 @@ let customIconData = iconStorage.load();
         `;
         $('body').append(cropperHtml);
         $iphoneContainer = $('#iphone-menu-container');
-        $settingsModal = $('#iphone-settings-modal');
+        $settingsStorage = $('#iphone-settings-storage');
         $globalTooltip = $('#iphone-global-tooltip');
 
         applyBackground();
@@ -318,11 +318,6 @@ let customIconData = iconStorage.load();
         $('.iphone-settings-toggle').on('click', function(e) {
             e.stopPropagation();
             openSettingsModal();
-        });
-
-        $('#iphone-settings-close').on('click', closeSettingsModal);
-        $settingsModal.on('mousedown', function(e) {
-            if (e.target === this) closeSettingsModal();
         });
 
         
@@ -379,7 +374,7 @@ let customIconData = iconStorage.load();
 
         $(document).on('mousedown', (e) => {
             if (!settings.autoClose) return;
-            if ($settingsModal && ($settingsModal.is(e.target) || $settingsModal.has(e.target).length > 0)) return;
+            if (settingsPopup) return;
             if ($('#iphone-cropper-modal').is(':visible')) return;
             if (!$iphoneContainer.is(e.target) && $iphoneContainer.has(e.target).length === 0 && !$(e.target).closest('#extensionsMenuButton').length) {
                 $iphoneContainer.fadeOut(200);
@@ -389,63 +384,37 @@ let customIconData = iconStorage.load();
     }
 
     function openSettingsModal() {
+        if (settingsPopup) return;
+
         renderVisibilitySettings();
-        positionSettingsModal();
-        $settingsModal.stop(true, true).css({ display: 'flex', opacity: 0 }).animate({ opacity: 1 }, 160);
+        const content = document.getElementById('iphone-settings-popup-content');
+        settingsPopup = new Popup(content, POPUP_TYPE.DISPLAY, '', {
+            wider: true,
+            allowVerticalScrolling: true,
+            onOpen: popup => {
+                popup.dlg.classList.add('iphone-settings-popup-dialog');
+                popup.body.classList.add('iphone-settings-popup-body');
+                popup.content.classList.add('iphone-settings-popup-host');
+            },
+            onClose: () => {
+                $settingsStorage.append(content);
+                settingsPopup = null;
+                refreshAppGrid();
+            }
+        });
+        settingsPopup.show();
     }
 
     function closeSettingsModal() {
-        if (!$settingsModal) return;
-        $settingsModal.stop(true, true).animate({ opacity: 0 }, 160, function() {
-            $settingsModal.hide();
-            refreshAppGrid();
-        });
-    }
-
-    function positionSettingsModal() {
-        if (!$settingsModal) return;
-
-        const host = getSettingsHostElement();
-        const rect = host ? host.getBoundingClientRect() : {
-            top: 0,
-            left: 0,
-            width: window.innerWidth,
-            height: window.innerHeight
-        };
-
-        const padding = 10;
-        const top = Math.max(padding, rect.top + padding);
-        const left = Math.max(padding, rect.left + padding);
-        const right = Math.min(window.innerWidth - padding, rect.right - padding);
-        const bottom = Math.min(window.innerHeight - padding, rect.bottom - padding);
-
-        $settingsModal.css({
-            top: `${top}px`,
-            left: `${left}px`,
-            width: `${Math.max(0, right - left)}px`,
-            height: `${Math.max(0, bottom - top)}px`
-        });
-    }
-
-    function getSettingsHostElement() {
-        const selectors = ['#chat', '#sheld', '#chat-block', '#main-content', 'body'];
-        for (const selector of selectors) {
-            const element = document.querySelector(selector);
-            if (!element) continue;
-
-            const rect = element.getBoundingClientRect();
-            if (rect.width > 320 && rect.height > 360) {
-                return element;
-            }
-        }
-        return null;
+        if (!settingsPopup) return;
+        settingsPopup.completeCancelled();
     }
 
     function scheduleMenuRefresh() {
         clearTimeout(refreshTimer);
         refreshTimer = setTimeout(() => {
             refreshAppGrid();
-            if ($settingsModal && $settingsModal.is(':visible')) {
+            if (settingsPopup) {
                 renderVisibilitySettings();
             }
         }, 150);
@@ -766,7 +735,7 @@ let customIconData = iconStorage.load();
         candidates.each(function() {
             const $item = $(this);
             if (!$item.closest('#extensionsMenu').length) return;
-            if ($item.closest('#iphone-menu-container, #iphone-settings-modal').length) return;
+            if ($item.closest('#iphone-menu-container, #iphone-settings-popup-content, .iphone-settings-popup-dialog').length) return;
             if ($item.parentsUntil('#extensionsMenu').filter('.list-group-item, .extensionsMenuExtensionButton, button, [role="button"]').length) return;
 
             const labelFromChild = $item.find('.list-group-item-label, .menu_button, .menu-label, span').first().text().trim();
@@ -836,6 +805,20 @@ let customIconData = iconStorage.load();
             cancelable: true,
             view: window
         }));
+    }
+
+    function moveAppOrder(appId, delta) {
+        if (!settings.appOrder) return;
+
+        const fromIdx = settings.appOrder.indexOf(appId);
+        const toIdx = fromIdx + delta;
+        if (fromIdx < 0 || toIdx < 0 || toIdx >= settings.appOrder.length) return;
+
+        settings.appOrder.splice(fromIdx, 1);
+        settings.appOrder.splice(toIdx, 0, appId);
+        saveSettingsDebounced();
+        renderVisibilitySettings();
+        refreshAppGrid();
     }
 
 function refreshAppGrid() {
@@ -983,6 +966,13 @@ function refreshAppGrid() {
             refreshAppGrid();
         });
 
+        $list.on('click', '.mobile-order-btn', function(e) {
+            e.stopPropagation();
+            const appId = $(this).closest('.setting-item-container').data('app-id');
+            const direction = $(this).data('direction');
+            moveAppOrder(appId, direction === 'up' ? -1 : 1);
+        });
+
         $list.empty();
         customIconData = iconStorage.load();
         const items = getAllMenuItems();
@@ -997,6 +987,14 @@ function refreshAppGrid() {
                     <div class="setting-item main-row">
                         <div class="drag-handle" draggable="true" title="Drag to reorder">
                             <i class="fa-solid fa-grip-vertical"></i>
+                        </div>
+                        <div class="mobile-order-controls" aria-label="순서 변경">
+                            <button type="button" class="mobile-order-btn" data-direction="up" title="위로 이동">
+                                <i class="fa-solid fa-chevron-up"></i>
+                            </button>
+                            <button type="button" class="mobile-order-btn" data-direction="down" title="아래로 이동">
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
                         </div>
                         <div class="app-info-trigger" style="flex:1; cursor:pointer; display:flex; align-items:center;">
                             <div class="mini-preview" id="prev-${item.id}">
@@ -1131,9 +1129,6 @@ function refreshAppGrid() {
         $(window).on('resize', () => {
             if ($iphoneContainer.is(':visible')) {
                 applyCurrentPosition();
-            }
-            if ($settingsModal && $settingsModal.is(':visible')) {
-                positionSettingsModal();
             }
         });
     }

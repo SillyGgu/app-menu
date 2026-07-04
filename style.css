@@ -350,6 +350,32 @@
     cursor: grabbing;
 }
 
+.mobile-order-controls {
+    display: none;
+    gap: 4px;
+    margin-right: 8px;
+}
+
+.mobile-order-btn {
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 9px;
+    background: rgba(0, 0, 0, 0.07);
+    color: #374151;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.mobile-order-btn:active {
+    transform: scale(0.94);
+    background: rgba(0, 122, 255, 0.16);
+    color: #0b63ce;
+}
+
 .mini-preview {
     width: 24px;
     height: 24px;
@@ -569,93 +595,71 @@
     font-size: 12px !important;
 }
 
-#iphone-settings-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.55);
-    z-index: 10500;
-    align-items: center;
-    justify-content: center;
-    padding: 12px;
-    box-sizing: border-box;
-    overflow: hidden;
+.iphone-settings-popup-dialog {
+    width: min(920px, calc(100vw - 64px)) !important;
+    max-width: calc(100vw - 64px) !important;
 }
 
-#iphone-settings-panel {
-    width: min(760px, calc(100% - 24px));
-    max-height: calc(100% - 24px);
-    background: rgba(248, 248, 250, 0.98);
-    color: #222;
-    border-radius: 16px;
-    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+.iphone-settings-popup-body,
+.iphone-settings-popup-host {
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+.iphone-settings-popup {
+    width: 100%;
+    max-width: 900px;
+    max-height: min(820px, calc(100dvh - 64px));
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    color: #222;
+    margin: 0 auto;
+    box-sizing: border-box;
     overflow: hidden;
 }
 
-#iphone-settings-header {
-    height: 54px;
-    padding: 0 18px 0 22px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-sizing: border-box;
+.iphone-settings-popup-title {
     flex-shrink: 0;
-}
-
-#iphone-settings-header span {
     font-size: 16px;
     font-weight: 700;
-}
-
-#iphone-settings-close {
-    width: 34px;
-    height: 34px;
-    border: 0;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.08);
-    color: #222;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#iphone-settings-close:hover {
-    background: rgba(0, 0, 0, 0.14);
+    padding: 0 0 14px 0;
 }
 
 #iphone-settings-content {
+    flex: 1 1 auto;
+    min-height: 0;
     overflow: auto;
-    padding: 18px;
+    padding: 2px 6px 6px 2px;
     box-sizing: border-box;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
 }
 
-#iphone-settings-modal #iphone-settings-view {
+.iphone-settings-popup #iphone-settings-view {
     width: 100%;
+    max-width: 100%;
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
     padding: 0;
+    box-sizing: border-box;
 }
 
-#iphone-settings-modal .setting-group {
+.iphone-settings-popup .setting-group {
+    min-width: 0;
     width: 100%;
     margin: 0;
     background: #fff;
     border-radius: 10px;
 }
 
-#iphone-settings-modal .setting-group:last-child {
+.iphone-settings-popup .setting-group:last-child {
     grid-column: 1 / -1;
 }
 
-#iphone-settings-modal input[type="text"],
-#iphone-settings-modal input[type="number"] {
+.iphone-settings-popup input[type="text"],
+.iphone-settings-popup input[type="number"] {
     width: 100%;
     box-sizing: border-box;
 }
@@ -765,18 +769,30 @@
 }
 
 @media (max-width: 720px) {
-    #iphone-settings-modal {
-        padding: 10px;
+    .iphone-settings-popup-dialog {
+        width: calc(100vw - 24px) !important;
+        max-width: calc(100vw - 24px) !important;
     }
 
-    #iphone-settings-panel {
+    .iphone-settings-popup {
         width: 100%;
-        max-height: calc(100% - 20px);
-        border-radius: 12px;
+        max-height: calc(100dvh - 56px);
     }
 
-    #iphone-settings-modal #iphone-settings-view {
+    .iphone-settings-popup #iphone-settings-view {
         grid-template-columns: 1fr;
+    }
+
+    .iphone-settings-popup .drag-handle {
+        display: none;
+    }
+
+    .iphone-settings-popup .mobile-order-controls {
+        display: inline-flex;
+    }
+
+    .iphone-settings-popup .main-row {
+        min-height: 48px;
     }
 
     .frame-color-picker {
