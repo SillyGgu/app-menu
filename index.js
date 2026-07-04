@@ -390,6 +390,7 @@ let customIconData = iconStorage.load();
 
     function openSettingsModal() {
         renderVisibilitySettings();
+        positionSettingsModal();
         $settingsModal.stop(true, true).css({ display: 'flex', opacity: 0 }).animate({ opacity: 1 }, 160);
     }
 
@@ -399,6 +400,45 @@ let customIconData = iconStorage.load();
             $settingsModal.hide();
             refreshAppGrid();
         });
+    }
+
+    function positionSettingsModal() {
+        if (!$settingsModal) return;
+
+        const host = getSettingsHostElement();
+        const rect = host ? host.getBoundingClientRect() : {
+            top: 0,
+            left: 0,
+            width: window.innerWidth,
+            height: window.innerHeight
+        };
+
+        const padding = 10;
+        const top = Math.max(padding, rect.top + padding);
+        const left = Math.max(padding, rect.left + padding);
+        const right = Math.min(window.innerWidth - padding, rect.right - padding);
+        const bottom = Math.min(window.innerHeight - padding, rect.bottom - padding);
+
+        $settingsModal.css({
+            top: `${top}px`,
+            left: `${left}px`,
+            width: `${Math.max(0, right - left)}px`,
+            height: `${Math.max(0, bottom - top)}px`
+        });
+    }
+
+    function getSettingsHostElement() {
+        const selectors = ['#chat', '#sheld', '#chat-block', '#main-content', 'body'];
+        for (const selector of selectors) {
+            const element = document.querySelector(selector);
+            if (!element) continue;
+
+            const rect = element.getBoundingClientRect();
+            if (rect.width > 320 && rect.height > 360) {
+                return element;
+            }
+        }
+        return null;
     }
 
     function scheduleMenuRefresh() {
@@ -1091,6 +1131,9 @@ function refreshAppGrid() {
         $(window).on('resize', () => {
             if ($iphoneContainer.is(':visible')) {
                 applyCurrentPosition();
+            }
+            if ($settingsModal && $settingsModal.is(':visible')) {
+                positionSettingsModal();
             }
         });
     }
