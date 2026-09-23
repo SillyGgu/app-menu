@@ -12,6 +12,7 @@ let customIconData = iconStorage.load();
     let menuObserver;
     let refreshTimer;
     let menuSignature = '';
+    let gridRefreshPending = false;
     const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
     let cropperState = {
         img: null,
@@ -133,7 +134,7 @@ let customIconData = iconStorage.load();
             document.getElementById('iphone-cropper-modal').close();
             setTimeout(() => {
                 renderVisibilitySettings();
-                refreshAppGrid();
+                requestGridRefresh();
             }, 50);
         });
 
@@ -350,6 +351,7 @@ let customIconData = iconStorage.load();
         $('#menu-scale-slider').on('input', function() {
             settings.scale = $(this).val();
             $('#scale-value').text(settings.scale + '%');
+        }).on('change', function() {
             applyCurrentPosition();
             saveSettingsDebounced();
         });
@@ -357,6 +359,7 @@ let customIconData = iconStorage.load();
         $('#bg-blur-slider').on('input', function() {
             settings.bgBlur = $(this).val();
             $('#blur-value').text(settings.bgBlur + 'px');
+        }).on('change', function() {
             applyBackground();
             saveSettingsDebounced();
         });
@@ -364,6 +367,7 @@ let customIconData = iconStorage.load();
         $('#bg-opacity-slider').on('input', function() {
             settings.bgOpacity = $(this).val();
             $('#opacity-value').text(Math.round(settings.bgOpacity * 100) + '%');
+        }).on('change', function() {
             applyBackground();
             saveSettingsDebounced();
         });
@@ -372,6 +376,7 @@ let customIconData = iconStorage.load();
             settings.iconOpacity = $(this).val();
             $('#icon-opacity-value').text(Math.round(settings.iconOpacity * 100) + '%');
             applyLauncherTypography();
+        }).on('change', function() {
             saveSettingsDebounced();
         });
 
@@ -379,12 +384,14 @@ let customIconData = iconStorage.load();
             settings.fontSize = $(this).val();
             $('#font-size-value').text(settings.fontSize + 'px');
             applyLauncherTypography();
+        }).on('change', function() {
             saveSettingsDebounced();
         });
         $('#sprite-x-slider').on('input', function() {
             settings.spriteXOffset = parseInt($(this).val());
             $('#sprite-x-value').text(settings.spriteXOffset + 'px');
-            refreshAppGrid(); 
+        }).on('change', function() {
+            requestGridRefresh();
             saveSettingsDebounced();
         });
         $('#bg-url-input').on('change', function() {
@@ -422,7 +429,10 @@ let customIconData = iconStorage.load();
             onClose: () => {
                 $settingsStorage.append(content);
                 settingsPopup = null;
-                refreshAppGrid();
+                if (gridRefreshPending) {
+                    gridRefreshPending = false;
+                    refreshAppGrid();
+                }
             }
         });
         settingsPopup.show();
@@ -433,13 +443,21 @@ let customIconData = iconStorage.load();
         settingsPopup.completeCancelled();
     }
 
+    function requestGridRefresh() {
+        if (settingsPopup) {
+            gridRefreshPending = true;
+            return;
+        }
+        refreshAppGrid();
+    }
+
     function scheduleMenuRefresh() {
         clearTimeout(refreshTimer);
         refreshTimer = setTimeout(() => {
             const signature = getAllMenuItems().map(item => `${item.id}:${item.label}:${item.iconClass}`).join('|');
             if (signature === menuSignature) return;
             menuSignature = signature;
-            refreshAppGrid();
+            requestGridRefresh();
             if (settingsPopup) {
                 renderVisibilitySettings();
             }
@@ -519,13 +537,13 @@ let customIconData = iconStorage.load();
             hueThumb.style.left = `${picker.h / 360 * 100}%`;
         }
 
-        function setFrameColor(color) {
+        function setFrameColor(color, persist = true) {
             const normalized = normalizeHexColor(color);
             if (!normalized) return;
             settings.frameColor = normalized;
             applyFrameColor();
             syncPicker(normalized);
-            saveSettingsDebounced();
+            if (persist) saveSettingsDebounced();
         }
 
         function updateFromArea(e) {
@@ -534,14 +552,14 @@ let customIconData = iconStorage.load();
             const y = Math.min(Math.max(e.clientY - rect.top, 0), rect.height);
             picker.s = Math.round((x / rect.width) * 100);
             picker.v = Math.round(100 - (y / rect.height) * 100);
-            setFrameColor(hsvToHex(picker.h, picker.s, picker.v));
+            setFrameColor(hsvToHex(picker.h, picker.s, picker.v), false);
         }
 
         function updateFromHue(e) {
             const rect = hueStrip.getBoundingClientRect();
             const x = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
             picker.h = Math.round((x / rect.width) * 360);
-            setFrameColor(hsvToHex(picker.h, picker.s, picker.v));
+            setFrameColor(hsvToHex(picker.h, picker.s, picker.v), false);
         }
 
         function bindPointerDrag(element, onMove) {
@@ -554,6 +572,8 @@ let customIconData = iconStorage.load();
                 if (e.buttons !== 1) return;
                 onMove(e);
             });
+            element.addEventListener('pointerup', () => saveSettingsDebounced());
+            element.addEventListener('pointercancel', () => saveSettingsDebounced());
         }
 
         syncPicker(settings.frameColor);
@@ -870,7 +890,7 @@ let customIconData = iconStorage.load();
         if (fromIdx < 0 || toIdx < 0 || fromIdx === toIdx) return;
         settings.appOrder.splice(fromIdx, 1);
         settings.appOrder.splice(settings.appOrder.indexOf(toId), 0, fromId);
-        saveSettingsDebounced(); renderVisibilitySettings(); refreshAppGrid();
+        saveSettingsDebounced(); renderVisibilitySettings(); requestGridRefresh();
     }
 
     function moveAppOrder(appId, delta) {
@@ -886,7 +906,7 @@ let customIconData = iconStorage.load();
         [order[orderFrom], order[orderTo]] = [order[orderTo], order[orderFrom]];
         saveSettingsDebounced();
         renderVisibilitySettings();
-        refreshAppGrid();
+        requestGridRefresh();
     }
 
     function folderToken(id) { return `folder:${id}`; }
@@ -908,7 +928,7 @@ let customIconData = iconStorage.load();
         if (target) target.appIds.push(appId);
         saveSettingsDebounced();
         renderVisibilitySettings();
-        refreshAppGrid();
+        requestGridRefresh();
     }
 
     function openFolder(folder, itemMap, hidden) {
@@ -1055,7 +1075,7 @@ function refreshAppGrid() {
             settings.folders.push({ id, name: '새 폴더', appIds: [] });
             settings.appOrder.push(folderToken(id));
             openFolderIds.add(id);
-            saveSettingsDebounced(); renderVisibilitySettings(); refreshAppGrid();
+            saveSettingsDebounced(); renderVisibilitySettings(); requestGridRefresh();
             $('#app-visibility-list .folder-row').filter((_, el) => $(el).data('folder-id') === id)
                 .find('.folder-name-input').trigger('focus').trigger('select');
         });
@@ -1090,7 +1110,9 @@ function refreshAppGrid() {
                 $('<input type="text" class="folder-name-input" maxlength="40">').val(folder.name).on('input change', function() {
                     folder.name = String(this.value).slice(0, 40) || '새 폴더';
                     $toggle.find('.folder-row-name').text(folder.name);
-                    saveSettingsDebounced(); refreshAppGrid();
+                    requestGridRefresh();
+                }).on('change', function() {
+                    saveSettingsDebounced();
                 })
             ).appendTo($edit);
             $('<button type="button" class="folder-delete-btn" aria-label="폴더 삭제"><i class="fa-solid fa-trash"></i></button>')
@@ -1098,7 +1120,7 @@ function refreshAppGrid() {
                     settings.folders = settings.folders.filter(entry => entry.id !== folder.id);
                     settings.appOrder = settings.appOrder.filter(id => id !== token);
                     openFolderIds.delete(folder.id); openPickerIds.delete(folder.id);
-                    saveSettingsDebounced(); renderVisibilitySettings(); refreshAppGrid();
+                    saveSettingsDebounced(); renderVisibilitySettings(); requestGridRefresh();
                 });
             $('<div class="folder-items"></div>').appendTo($body);
             $('<button type="button" class="folder-select-btn"><i class="fa-solid fa-plus"></i> 앱 추가</button>')
@@ -1106,14 +1128,19 @@ function refreshAppGrid() {
                     const open = !openPickerIds.has(folder.id);
                     if (open) openPickerIds.add(folder.id); else openPickerIds.delete(folder.id);
                     $picker.prop('hidden', !open);
+                    if (open) populatePicker();
                     $(this).attr('aria-expanded', String(open));
                 });
             const $picker = $('<div class="folder-app-picker"></div>').prop('hidden', !openPickerIds.has(folder.id)).appendTo($body);
-            items.filter(item => !folder.appIds.includes(item.id)).forEach(item => {
-                const name = settings.appNames[item.id] || item.label;
-                $('<button type="button" class="folder-add-app"></button>').text(`+ ${name}`).appendTo($picker)
-                    .on('click', () => moveAppToFolder(item.id, folder.id, items));
-            });
+            function populatePicker() {
+                $picker.empty();
+                items.filter(item => !folder.appIds.includes(item.id)).forEach(item => {
+                    const name = settings.appNames[item.id] || item.label;
+                    $('<button type="button" class="folder-add-app"></button>').text(`+ ${name}`).appendTo($picker)
+                        .on('click', () => moveAppToFolder(item.id, folder.id, items));
+                });
+            }
+            if (openPickerIds.has(folder.id)) populatePicker();
             $row.on('dragover', e => { e.preventDefault(); e.originalEvent.dataTransfer.dropEffect = 'move'; $row.addClass('drag-over'); })
                 .on('dragleave', () => $row.removeClass('drag-over'))
                 .on('drop', e => {
@@ -1137,8 +1164,17 @@ function refreshAppGrid() {
         $list.off('change');
 
         $list.on('click', '.app-info-trigger', function() {
-            const $detail = $(this).closest('.setting-item-container').find('.app-detail-settings');
+            const $row = $(this).closest('.setting-item-container');
+            const $detail = $row.find('.app-detail-settings');
             const expanded = $(this).attr('aria-expanded') === 'true';
+            if (!expanded) {
+                const $preview = $detail.find('.app-icon-preview');
+                if (!$preview.children().length) {
+                    const id = $row.data('app-id');
+                    if (customIconData.icons[id]) $('<img alt="">').attr('src', customIconData.icons[id]).appendTo($preview);
+                    else $('<i></i>').addClass($row.data('icon-class')).appendTo($preview);
+                }
+            }
             $(this).attr('aria-expanded', String(!expanded));
             $detail.prop('hidden', expanded);
         });
@@ -1151,10 +1187,10 @@ function refreshAppGrid() {
                 if (!settings.hiddenApps.includes(id)) settings.hiddenApps.push(id);
             }
             saveSettingsDebounced();
-            refreshAppGrid();
+            requestGridRefresh();
         });
 
-        $list.on('input change', '.app-name-input', function() {
+        $list.on('input', '.app-name-input', function() {
             const appId = $(this).closest('.setting-item-container').data('app-id');
             const name = String($(this).val()).trim().slice(0, 40);
             if (this.value.length > 40) this.value = name;
@@ -1165,13 +1201,14 @@ function refreshAppGrid() {
             $row.find('.app-row-name').text(displayName);
             $row.find('.app-info-trigger').attr('aria-label', `${displayName} 편집`);
             $row.find('.app-vis-check').attr('aria-label', `${displayName} 표시`);
-            saveSettingsDebounced();
-            refreshAppGrid();
+            requestGridRefresh();
         });
+
+        $list.on('change', '.app-name-input', () => saveSettingsDebounced());
 
         $list.on('click', '.app-name-reset-btn', function() {
             const $row = $(this).closest('.setting-item-container');
-            $row.find('.app-name-input').val('').trigger('change');
+            $row.find('.app-name-input').val('').trigger('input').trigger('change');
         });
 
         $list.on('click', '.icon-upload-btn', function() {
@@ -1191,7 +1228,7 @@ function refreshAppGrid() {
             delete customIconData.icons[appId];
             iconStorage.save(customIconData);
             renderVisibilitySettings();
-            refreshAppGrid();
+            requestGridRefresh();
         });
 
         $list.on('change', '.sprite-row, .sprite-col', function() {
@@ -1201,7 +1238,7 @@ function refreshAppGrid() {
             const c = parseInt($container.find('.sprite-col').val()) || 0;
             customIconData.spriteOffsets[appId] = { r, c };
             iconStorage.save(customIconData);
-            refreshAppGrid();
+            requestGridRefresh();
         });
 
         $list.on('click', '.mobile-order-btn', function(e) {
@@ -1265,6 +1302,7 @@ function refreshAppGrid() {
                 </div>
             `);
             $row.data('app-id', item.id);
+            $row.data('icon-class', item.iconClass);
             const displayName = settings.appNames[item.id] || item.label;
             const folder = appFolder(item.id);
             if (folder) $row.find('.app-row-name').attr('title', `${folder.name} 폴더에 있음`);
@@ -1278,7 +1316,7 @@ function refreshAppGrid() {
                 $row.find('.app-info-trigger').attr('aria-expanded', 'true');
                 $row.find('.app-detail-settings').prop('hidden', false);
             }
-            const $previews = $row.find('.mini-preview, .app-icon-preview');
+            const $previews = expandedId === item.id ? $row.find('.mini-preview, .app-icon-preview') : $row.find('.mini-preview');
             $previews.each(function() {
                 if (customIcon) $('<img alt="">').attr('src', customIcon).appendTo(this);
                 else $('<i></i>').addClass(item.iconClass).appendTo(this);
@@ -1367,7 +1405,7 @@ function refreshAppGrid() {
                     if (!items.some(item => item.id === fromId)) return;
                     settings.folders.forEach(folder => { folder.appIds = folder.appIds.filter(id => id !== fromId); });
                     targetFolder.appIds.splice(targetFolder.appIds.indexOf(toId), 0, fromId);
-                    saveSettingsDebounced(); renderVisibilitySettings(); refreshAppGrid();
+                    saveSettingsDebounced(); renderVisibilitySettings(); requestGridRefresh();
                 } else {
                     settings.folders.forEach(folder => { folder.appIds = folder.appIds.filter(id => id !== fromId); });
                     reorderTopLevel(fromId, toId);
@@ -1386,14 +1424,14 @@ function refreshAppGrid() {
         $('#sprite-url-input').on('change', function() {
             customIconData.sprite.url = $(this).val();
             iconStorage.save(customIconData);
-            refreshAppGrid();
+            requestGridRefresh();
         });
 
         
         $('#sprite-enable-toggle').on('change', function() {
             customIconData.sprite.enabled = $(this).is(':checked');
             iconStorage.save(customIconData);
-            refreshAppGrid();
+            requestGridRefresh();
         });
         
         document.addEventListener('click', e => {
@@ -1429,7 +1467,7 @@ function refreshAppGrid() {
         window.addEventListener('storage', event => {
             if (event.key !== iconStorage.key) return;
             customIconData = iconStorage.load();
-            refreshAppGrid();
+            requestGridRefresh();
             if (settingsPopup) renderVisibilitySettings();
         });
     }
