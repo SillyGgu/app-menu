@@ -21,7 +21,7 @@
     padding: 0;
     box-sizing: border-box;
     overflow: hidden;
-    touch-action: none;
+    touch-action: auto;
     transform-origin: top left;
 }
 
@@ -45,7 +45,7 @@
     flex-direction: row !important;
     justify-content: space-between !important;
     align-items: center !important;
-    padding: 0 20px !important;
+    padding: 0 14px !important;
     background: transparent !important; 
     flex-shrink: 0 !important;
     height: 45px !important;
@@ -54,7 +54,7 @@
     position: relative !important;
     z-index: 10 !important;
     width: calc(100% - 18px) !important;
-    margin: 34px 9px 0 9px !important;
+    margin: 40px 9px 0 9px !important;
 }
 
 
@@ -67,9 +67,13 @@
 
 #iphone-title {
     color: #111 !important;
+    font-family: var(--mainFontFamily, inherit) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
 }
 
-.iphone-settings-toggle {
+#iphone-menu-container .iphone-settings-toggle {
     cursor: pointer;
     width: 30px;
     height: 30px;
@@ -82,22 +86,22 @@
     box-shadow: inset 0 0 2px rgba(0,0,0,0.1);
 }
 
-.iphone-settings-toggle:hover {
+#iphone-menu-container .iphone-settings-toggle:hover {
     background: #636366; 
 }
 
-.iphone-settings-toggle:active {
+#iphone-menu-container .iphone-settings-toggle:active {
     transform: scale(0.9);
 }
 
-.iphone-settings-toggle i {
+#iphone-menu-container .iphone-settings-toggle i {
     color: #ffffff !important; 
     font-size: 12px !important;
     margin: 0 !important;
     padding: 0 !important;
 }
 
-.iphone-view {
+#iphone-menu-container .iphone-view {
     height: 421px; 
     overflow-y: auto !important;
     display: block;
@@ -110,20 +114,20 @@
     border-bottom-right-radius: 30px;
 }
 
-.iphone-view::-webkit-scrollbar {
+#iphone-menu-container .iphone-view::-webkit-scrollbar {
     width: 4px !important; 
     display: block !important;
 }
-.iphone-view::-webkit-scrollbar-thumb {
+#iphone-menu-container .iphone-view::-webkit-scrollbar-thumb {
     background: rgba(0, 0, 0, 0.1) !important; 
     border-radius: 10px;
 }
-.iphone-view::-webkit-scrollbar-track {
+#iphone-menu-container .iphone-view::-webkit-scrollbar-track {
     background: transparent !important;
 }
 
 
-.iphone-shelf {
+#iphone-menu-container .iphone-shelf {
     display: flex !important;
     justify-content: center !important;
     gap: 24px !important;
@@ -136,7 +140,7 @@
     padding: 0 !important;
 }
 
-.iphone-app-item {
+#iphone-menu-container .iphone-app-item {
     
     width: 60px !important;
     display: flex;
@@ -147,7 +151,7 @@
     flex-shrink: 0; 
 }
 
-.iphone-app-icon {
+#iphone-menu-container .iphone-app-icon {
     width: 60px !important;
     height: 60px !important;
     background: rgba(0, 0, 0, 0.05); 
@@ -166,7 +170,7 @@
     box-sizing: border-box !important;
 }
 
-.iphone-app-icon img {
+#iphone-menu-container .iphone-app-icon img {
     width: 100% !important;
     height: 100% !important;
     object-fit: cover !important;
@@ -174,12 +178,12 @@
 }
 
 
-.iphone-app-icon > div {
+#iphone-menu-container .iphone-app-icon > div {
     width: 100% !important;
     height: 100% !important;
 }
 
-.iphone-app-icon i {
+#iphone-menu-container .iphone-app-icon i {
     margin: 0 !important;
     padding: 0 !important;
     width: auto !important;
@@ -191,7 +195,7 @@
     position: static !important;
     transform: none !important;
 }
-.iphone-app-icon div {
+#iphone-menu-container .iphone-app-icon div {
     margin: 0 !important;
     padding: 0 !important;
     width: 60px !important;
@@ -205,13 +209,13 @@
     will-change: background-position;
     backface-visibility: hidden;
 }
-.iphone-app-item:hover .iphone-app-icon {
+#iphone-menu-container .iphone-app-item:hover .iphone-app-icon {
     transform: scale(1.05);
     filter: brightness(0.95);
 }
 
 
-.iphone-screen-backdrop {
+#iphone-menu-container .iphone-screen-backdrop {
     position: absolute;
     top: 9px;
     left: 9px;
@@ -224,7 +228,7 @@
     background: rgba(255, 255, 255, 0.96);
 }
 
-.iphone-bg-blur-layer {
+#iphone-menu-container .iphone-bg-blur-layer {
     position: absolute;
     inset: 0;
     background-size: cover;
@@ -233,7 +237,7 @@
     transform: scale(1.1); 
     pointer-events: none;
 }
-.iphone-bg-overlay {
+#iphone-menu-container .iphone-bg-overlay {
     position: absolute;
     inset: 0;
     background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.58));
@@ -242,12 +246,12 @@
 }
 
 
-.iphone-app-icon {
+#iphone-menu-container .iphone-app-icon {
     transition: opacity 0.2s;
 }
 
 
-.iphone-app-label {
+#iphone-menu-container .iphone-app-label {
     margin-top: 6px;
     color: #333;
     text-align: center;
@@ -257,9 +261,11 @@
     text-overflow: ellipsis;
     text-shadow: 0px 0px 2px rgba(255,255,255,0.8);
     transition: font-weight 0.2s, font-size 0.2s;
+    font-size: var(--am-app-font-size, 10px) !important;
+    width: 60px !important;
 }
 
-.iphone-app-label.is-bold {
+#iphone-menu-container .iphone-app-label.is-bold {
     font-weight: bold !important;
 }
 #iphone-global-tooltip {
@@ -280,7 +286,7 @@
     display: none !important;
 }
 
-.setting-group {
+.iphone-settings-popup .setting-group {
     margin: 0 auto 15px auto; 
     padding: 15px;
     background: rgba(255, 255, 255, 0.5); 
@@ -291,7 +297,7 @@
     display: block;
 }
 
-.setting-title {
+.iphone-settings-popup .setting-title {
     font-weight: bold;
     font-size: 11px !important;
     margin-bottom: 10px;
@@ -299,7 +305,7 @@
     color: #333;
 }
 
-.setting-item {
+.iphone-settings-popup .setting-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -315,29 +321,29 @@
     box-sizing: border-box;
 }
 
-.setting-item-container {
+.iphone-settings-popup .setting-item-container {
     border-bottom: 1px solid rgba(0,0,0,0.05);
     border-radius: 8px;
     transition: background 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
 }
 
-.setting-item-container.is-dragging {
+.iphone-settings-popup .setting-item-container.is-dragging {
     opacity: 0.58;
     background: rgba(0, 122, 255, 0.07);
 }
 
-.setting-item-container.drag-over {
+.iphone-settings-popup .setting-item-container.drag-over {
     box-shadow: inset 0 2px 0 #007aff;
     background: rgba(0, 122, 255, 0.05);
 }
 
-.main-row {
+.iphone-settings-popup .main-row {
     display: flex;
     align-items: center;
     padding: 10px 0;
 }
 
-.drag-handle {
+.iphone-settings-popup .drag-handle {
     cursor: grab;
     padding: 4px 8px 4px 2px;
     color: #8d95a3;
@@ -346,17 +352,17 @@
     user-select: none;
 }
 
-.drag-handle:active {
+.iphone-settings-popup .drag-handle:active {
     cursor: grabbing;
 }
 
-.mobile-order-controls {
+.iphone-settings-popup .mobile-order-controls {
     display: none;
     gap: 4px;
     margin-right: 8px;
 }
 
-.mobile-order-btn {
+.iphone-settings-popup .mobile-order-btn {
     width: 30px;
     height: 30px;
     border: 0;
@@ -370,13 +376,13 @@
     touch-action: manipulation;
 }
 
-.mobile-order-btn:active {
+.iphone-settings-popup .mobile-order-btn:active {
     transform: scale(0.94);
     background: rgba(0, 122, 255, 0.16);
     color: #0b63ce;
 }
 
-.mini-preview {
+.iphone-settings-popup .mini-preview {
     width: 24px;
     height: 24px;
     background: rgba(0, 0, 0, 0.05);
@@ -389,14 +395,14 @@
     flex-shrink: 0;
 }
 
-.mini-preview img {
+.iphone-settings-popup .mini-preview img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
 
-.mini-preview i {
+.iphone-settings-popup .mini-preview i {
     font-size: 12px !important; 
     line-height: 1 !important;
     display: flex !important;
@@ -406,29 +412,36 @@
     padding: 0 !important;
 }
 
-.icon-upload-btn, .icon-reset-btn {
+.iphone-settings-popup .icon-upload-btn, .iphone-settings-popup .icon-reset-btn {
     font-size: 10px;
     padding: 4px 8px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
 }
-.icon-upload-btn { background: #007aff; color: white; }
-.icon-reset-btn { background: #ff3b30; color: white; }
+.iphone-settings-popup .icon-upload-btn { background: #007aff; color: white; }
+.iphone-settings-popup .icon-reset-btn { background: #ff3b30; color: white; }
 
 
 #iphone-cropper-modal {
     position: fixed;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100vw;
-    height: 100vh;
-    background: rgba(0,0,0,0.8);
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
     z-index: 11000;
     display: none; 
     align-items: center; 
     justify-content: center; 
 }
+
+#iphone-cropper-modal[open] { display: flex; }
+#iphone-cropper-modal::backdrop { background: rgba(12, 20, 34, .7); }
 
 
 .cropper-canvas-container {
@@ -505,10 +518,6 @@
 }
 
 
-#iphone-settings-view,
-#iphone-settings-view * {
-    font-size: var(--settings-font-size);
-}
 
 
 #iphone-status-bar {
@@ -595,6 +604,11 @@
     font-size: 12px !important;
 }
 
+#iphone-settings-view .app-management-header .setting-title {
+    font-size: 16px !important;
+    line-height: 1.25;
+}
+
 .iphone-settings-popup-dialog {
     width: min(920px, calc(100vw - 64px)) !important;
     max-width: calc(100vw - 64px) !important;
@@ -604,6 +618,8 @@
 .iphone-settings-popup-host {
     overflow: hidden !important;
     box-sizing: border-box !important;
+    max-height: calc(100dvh - 16px) !important;
+    overflow: hidden !important;
 }
 
 .iphone-settings-popup {
@@ -803,4 +819,225 @@
         width: 52px;
         height: 92px;
     }
+}
+
+/* The launcher keeps its original phone dimensions and visual treatment. */
+#iphone-menu-container .iphone-app-icon { opacity: var(--am-icon-opacity, 1) !important; }
+#iphone-menu-container :focus-visible,
+.iphone-settings-popup :focus-visible,
+#iphone-cropper-modal :focus-visible {
+    outline: 2px solid #447bea;
+    outline-offset: 3px;
+}
+
+
+.iphone-settings-popup-dialog {
+    width: min(960px, calc(100vw - 32px)) !important;
+    max-width: calc(100vw - 32px) !important;
+    border-radius: 22px !important;
+    box-sizing: border-box !important;
+}
+
+.iphone-settings-popup {
+    --am-ink: #1b2536;
+    --am-muted: #65738a;
+    --am-line: #dce3ed;
+    color: var(--am-ink);
+    max-height: min(840px, calc(100dvh - 96px));
+    font-family: var(--mainFontFamily, inherit) !important;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.iphone-settings-popup button,
+.iphone-settings-popup input,
+.iphone-settings-popup select {
+    font-family: var(--mainFontFamily, inherit) !important;
+}
+
+.iphone-settings-popup .app-management-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.iphone-settings-popup .app-management-header .setting-title { margin: 0; font-size: 16px !important; font-weight: 700; }
+.iphone-settings-popup .app-management-actions { display: flex; align-items: center; gap: 8px; }
+.iphone-settings-popup #app-filter { min-height: 34px; border: 1px solid var(--am-line); border-radius: 9px; padding: 5px 9px; background: #fff; color: var(--am-ink); font-size: 12px !important; }
+.iphone-settings-popup #add-folder-btn { border: 0; border-radius: 9px; background: #e8efff; color: #315bc1; min-height: 34px; padding: 5px 11px; font-size: 12px !important; font-weight: 650; cursor: pointer; white-space: nowrap; }
+.iphone-settings-popup #app-visibility-list { display: grid; gap: 8px; }
+.iphone-settings-popup .folder-row { border: 1px solid var(--am-line); border-radius: 12px; background: #fff; overflow: hidden; }
+.iphone-settings-popup .folder-row.drag-over { border-color: #4978da; background: #edf3ff; box-shadow: inset 0 0 0 1px #4978da; }
+.iphone-settings-popup .folder-row-top { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 8px 11px; }
+.iphone-settings-popup .folder-toggle { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; border: 0; background: transparent; color: var(--am-ink); text-align: left; padding: 4px; cursor: pointer; font: inherit; }
+.iphone-settings-popup .folder-row-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 650; }
+.iphone-settings-popup .folder-chevron { color: var(--am-muted); font-size: 11px; transition: transform .15s; }
+.iphone-settings-popup .folder-toggle[aria-expanded="true"] .folder-chevron { transform: rotate(180deg); }
+.iphone-settings-popup .folder-row-icon { color: #6789d4; font-size: 19px; }
+.iphone-settings-popup .folder-contents[hidden] { display: none !important; }
+.iphone-settings-popup .folder-contents { padding: 0 12px 12px 35px; border-top: 1px solid var(--am-line); background: #f8faff; }
+.iphone-settings-popup .folder-edit-row { display: flex; align-items: end; gap: 8px; margin: 12px 0; }
+.iphone-settings-popup .folder-name-label { flex: 1; min-width: 0; font-size: 12px; font-weight: 600; }
+.iphone-settings-popup .folder-name-input { display: block; width: 100%; margin-top: 5px; font-weight: 600 !important; }
+.iphone-settings-popup .folder-items { display: grid; gap: 7px; }
+.iphone-settings-popup .folder-items .setting-item-container { margin: 0; }
+.iphone-settings-popup .folder-empty { color: var(--am-muted); font-size: 12px; padding: 8px 2px; }
+.iphone-settings-popup .folder-count { color: var(--am-muted); font-size: 11px; white-space: nowrap; }
+.iphone-settings-popup .folder-select-btn, .iphone-settings-popup .folder-delete-btn, .iphone-settings-popup .folder-remove-app { border: 0; background: #edf2fb; color: #3c5377; min-height: 34px; border-radius: 8px; padding: 4px 9px; cursor: pointer; white-space: nowrap; font-size: 12px; }
+.iphone-settings-popup .folder-select-btn { margin-top: 10px; }
+.iphone-settings-popup .folder-delete-btn { color: #a44b55; }
+.iphone-settings-popup .folder-remove-app { flex: none; min-width: 34px; }
+.iphone-settings-popup .folder-app-picker[hidden] { display: none !important; }
+.iphone-settings-popup .folder-app-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 6px; padding-top: 10px; max-height: 190px; overflow: auto; }
+.iphone-settings-popup .folder-add-app { min-width: 0; border: 1px solid var(--am-line); background: #fff; color: var(--am-ink); border-radius: 8px; padding: 7px 9px; text-align: left; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+
+#iphone-menu-container .iphone-folder-icon { width: 60px; height: 60px; box-sizing: border-box; border-radius: 14px; display: flex !important; flex-wrap: wrap; align-content: center !important; justify-content: center !important; align-items: center !important; gap: 3px; padding: 5px; background: rgba(242, 246, 253, .42); border: 1px solid rgba(255,255,255,.55); box-shadow: 0 4px 14px rgba(0,0,0,.1); backdrop-filter: blur(12px); opacity: var(--am-icon-opacity, 1) !important; }
+#iphone-menu-container .iphone-folder-mini-icon { width: 22px; height: 22px; flex: 0 0 22px; border-radius: 6px; background: rgba(255,255,255,.52); overflow: hidden; display: flex; align-items: center; justify-content: center; color: #40536e; }
+#iphone-menu-container .iphone-folder-mini-icon > i { display: block !important; width: auto !important; height: auto !important; max-width: 100%; margin: 0 !important; padding: 0 !important; font-size: 10px !important; line-height: 1 !important; transform: none !important; }
+#iphone-menu-container .iphone-folder-mini-icon img { width: 100%; height: 100%; object-fit: cover; }
+#iphone-menu-container #iphone-folder-view[hidden] { display: none !important; }
+#iphone-menu-container #iphone-folder-view { position: absolute; z-index: 12; top: 92px; right: 16px; bottom: 30px; left: 16px; padding: 13px; border-radius: 24px; background: rgba(235,242,249,.75); box-shadow: 0 10px 32px rgba(0,0,0,.2); backdrop-filter: blur(24px); overflow: auto; box-sizing: border-box; }
+#iphone-menu-container #iphone-folder-back { border: 0; background: transparent; color: #2766b6; font: 11px var(--mainFontFamily, inherit); padding: 3px 0 10px; cursor: pointer; }
+#iphone-menu-container #iphone-folder-name { color: #172433; text-align: center; font: 600 15px var(--mainFontFamily, inherit); margin: 4px 0 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#iphone-menu-container #iphone-folder-apps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); justify-items: center; gap: 18px 9px; }
+
+.iphone-settings-popup-title {
+    display: grid;
+    gap: 2px;
+    font-size: 21px;
+    letter-spacing: -.03em;
+    padding: 4px 4px 18px;
+    color: var(--am-ink);
+}
+
+.iphone-settings-popup-title small {
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--am-muted);
+}
+
+.iphone-settings-popup #iphone-settings-view {
+    gap: 12px;
+    align-items: start;
+}
+
+.iphone-settings-popup .setting-group {
+    padding: 17px;
+    border: 1px solid var(--am-line);
+    border-radius: 15px;
+    background: #f9fbfe;
+    box-shadow: 0 2px 8px rgba(20, 40, 75, .035);
+}
+
+.iphone-settings-popup .setting-title {
+    display: block;
+    margin-bottom: 9px;
+    color: var(--am-ink);
+    font-size: 13px !important;
+    font-weight: 680;
+}
+
+.iphone-settings-popup .setting-help {
+    margin: 0 0 14px;
+    color: var(--am-muted);
+    font-size: 12px !important;
+    font-weight: 400;
+    text-align: left;
+    line-height: 1.5;
+}
+
+.iphone-settings-popup input[type="text"],
+.iphone-settings-popup input[type="url"],
+.iphone-settings-popup input[type="number"] {
+    min-height: 38px;
+    border: 1px solid #cfd8e6;
+    border-radius: 9px;
+    padding: 7px 10px;
+    background: #fff;
+    color: var(--am-ink);
+    font: inherit;
+    box-sizing: border-box;
+}
+
+.iphone-settings-popup input[type="url"] { width: 100%; }
+.iphone-settings-popup input[type="range"] { accent-color: #4978da; }
+.iphone-settings-popup input[type="checkbox"] { accent-color: #4978da; width: 19px; height: 19px; }
+
+.iphone-settings-popup .setting-item-container {
+    border: 1px solid var(--am-line);
+    border-radius: 12px;
+    margin-bottom: 9px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.iphone-settings-popup .main-row { gap: 8px; padding: 8px 11px; border: 0; }
+.iphone-settings-popup .app-info-trigger {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px;
+    text-align: left;
+    border: 0;
+    background: transparent;
+    color: var(--am-ink);
+    cursor: pointer;
+    font: inherit;
+}
+
+.iphone-settings-popup .mini-preview,
+.iphone-settings-popup .app-icon-preview {
+    width: 36px;
+    height: 36px;
+    margin: 0;
+    border-radius: 10px;
+    background: #e9eff8;
+    color: #455c82;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex: none;
+}
+
+.iphone-settings-popup .app-icon-preview { width: 70px; height: 70px; border-radius: 17px; }
+.iphone-settings-popup .app-icon-preview i { font-size: 27px !important; }
+.iphone-settings-popup .app-icon-preview img { width: 100%; height: 100%; object-fit: cover; }
+.iphone-settings-popup .app-row-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 620; }
+.iphone-settings-popup .app-row-chevron { color: var(--am-muted); font-size: 11px; transition: transform .15s; }
+.iphone-settings-popup .app-info-trigger[aria-expanded="true"] .app-row-chevron { transform: rotate(180deg); }
+.iphone-settings-popup .app-detail-settings { padding: 14px 16px 16px; border-top: 1px solid var(--am-line); background: #f9fbfe; }
+.iphone-settings-popup .app-detail-settings[hidden] { display: none !important; }
+.iphone-settings-popup .app-edit-label { display: block; margin-bottom: 7px; font-size: 12px; font-weight: 650; color: var(--am-ink); }
+.iphone-settings-popup .app-name-input { width: 100%; margin-top: 5px; }
+.iphone-settings-popup .app-name-reset-btn { margin: 4px 0 14px; background: none; color: #466bc5; border: 0; padding: 4px 0; cursor: pointer; font: inherit; font-size: 12px; }
+.iphone-settings-popup .app-icon-editor { display: grid; grid-template-columns: 70px 1fr; column-gap: 12px; align-items: center; }
+.iphone-settings-popup .app-icon-editor .app-edit-label { grid-column: 1 / -1; }
+.iphone-settings-popup .app-icon-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+.iphone-settings-popup .icon-upload-btn,
+.iphone-settings-popup .icon-reset-btn { min-height: 36px; padding: 7px 11px; border-radius: 9px; font: inherit; font-size: 12px; font-weight: 600; }
+.iphone-settings-popup .icon-upload-btn { background: #426fdb; color: white; }
+.iphone-settings-popup .icon-reset-btn { background: #e8edf5; color: #34465f; }
+.iphone-settings-popup .sprite-offset-settings { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 14px; color: var(--am-muted); font-size: 12px; }
+.iphone-settings-popup .sprite-offset-settings span { flex-basis: 100%; }
+.iphone-settings-popup .sprite-offset-settings input { width: 64px !important; }
+
+#iphone-cropper-modal { padding: 16px; box-sizing: border-box; }
+#iphone-cropper-modal .cropper-content { width: min(380px, 100%); max-height: calc(100dvh - 32px); overflow: auto; box-sizing: border-box; background: #f9fbfe; border: 1px solid #e1e7f0; }
+#iphone-cropper-modal .cropper-header { font-size: 17px; font-weight: 700; color: #1b2536; }
+#iphone-cropper-modal .cropper-header small { display: block; margin-top: 4px; font-size: 12px; font-weight: 400; color: #65738a; }
+#iphone-cropper-modal .cropper-canvas-container { width: min(300px, calc(100vw - 80px)); height: auto; aspect-ratio: 1; }
+
+@media (max-width: 720px) {
+    .iphone-settings-popup-dialog { width: calc(100vw - 16px) !important; max-width: calc(100vw - 16px) !important; max-height: calc(100dvh - 80px) !important; margin-inline: auto !important; }
+    .iphone-settings-popup { max-height: calc(100dvh - 120px); }
+    .iphone-settings-popup .setting-group { padding: 14px; }
+    .iphone-settings-popup .main-row { min-height: 48px; }
+    .iphone-settings-popup .mobile-order-btn { width: 38px; height: 38px; }
+    .iphone-settings-popup .app-vis-check { flex: none; }
+    .iphone-settings-popup .app-management-header { align-items: flex-start; flex-wrap: wrap; }
+    .iphone-settings-popup .app-management-actions { margin-left: auto; }
+    .iphone-settings-popup .folder-contents { padding-left: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #iphone-menu-container *, .iphone-settings-popup *, #iphone-cropper-modal * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
